@@ -1,0 +1,92 @@
+<!-- templates/email/task_created.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Arial', sans-serif;
+            color: #2C3E50;
+        }
+        .header {
+            background: linear-gradient(135deg, #6C63FF 0%, #2A2A72 100%);
+            padding: 20px;
+            text-align: center;
+        }
+        .header img {
+            width: 100px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+            background: #F8F9FF;
+        }
+        .task-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(108, 99, 255, 0.1);
+        }
+        .task-detail {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .task-detail strong {
+            color: #6C63FF;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img src="cid:logo" alt="MindHelper Logo">
+            <h1>¡Nueva Tarea Creada!</h1>
+        </div>
+        <div class="content">
+            <p>Hola {{ user.get_full_name|default:user.username }},</p>
+            <p>Has creado una nueva tarea en MindHelper. Aquí están los detalles:</p>
+            
+            <div class="task-info">
+                <div class="task-detail">
+                    <strong>Título:</strong> {{ task.title }}
+                </div>
+                <div class="task-detail">
+                    <strong>Descripción:</strong> {{ task.description }}
+                </div>
+                <div class="task-detail">
+                    <strong>Categoría:</strong> {{ task.category.name|default:"Sin categoría" }}
+                </div>
+                <div class="task-detail">
+                    <strong>Prioridad:</strong> {{ task.get_priority_display }}
+                </div>
+                <div class="task-detail">
+                    <strong>Fecha de vencimiento:</strong> {{ task.due_date|date:"d/m/Y H:i"|default:"No establecida" }}
+                </div>
+                <div class="task-detail">
+                    <strong>Pomodoros estimados:</strong> {{ task.estimated_pomodoros }}
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no responder.</p>
+            <p>MindHelper © 2024</p>
+        </div>
+    </div>
+</body>
+</html>

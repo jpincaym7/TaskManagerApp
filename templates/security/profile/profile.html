@@ -1,0 +1,189 @@
+{% extends 'includes/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.stat-card {
+    background: var(--color-surface);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+.profile-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-md);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    color: var(--color-secondary);
+}
+
+.profile-info-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-background);
+}
+
+.profile-info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-size: 14px;
+    color: var(--color-text);
+    opacity: 0.8;
+    width: 40%;
+}
+
+.info-value {
+    font-size: 14px;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.edit-profile-btn {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gradient-primary);
+    color: white;
+    padding: 14px 32px;
+    border-radius: var(--radius-lg);
+    border: none;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 90;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-header-section">
+    <div class="profile-avatar large">
+        {% if user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="Profile Picture">
+        {% else %}
+            <i class="fas fa-user-circle"></i>
+        {% endif %}
+    </div>
+    <h1 class="profile-name large">{{ user.get_full_name|default:user.username }}</h1>
+</div>
+
+<div class="profile-stats">
+    <div class="stat-card">
+        <div class="stat-value">{{ task_summary.pending_tasks }}</div>
+        <div class="stat-label">Pendientes</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ task_summary.completed_tasks }}</div>
+        <div class="stat-label">Completadas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ task_summary.overdue_tasks }}</div>
+        <div class="stat-label">Atrasadas</div>
+    </div>
+</div>
+
+<div class="profile-section">
+    <h2 class="section-title">Información Personal</h2>
+    <div class="profile-info-item">
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ user.email }}</span>
+    </div>
+    <div class="profile-info-item">
+        <span class="info-label">Notificaciones</span>
+        <span class="info-value">{{ user.get_notification_frequency_display }}</span>
+    </div>
+</div>
+
+<div class="profile-section">
+    <h2 class="section-title">Configuración de Accesibilidad</h2>
+    <div class="profile-info-item">
+        <span class="info-label">Tamaño de texto</span>
+        <span class="info-value">{{ accessibility_settings.text_size }}</span>
+    </div>
+    <div class="profile-info-item">
+        <span class="info-label">Alto contraste</span>
+        <span class="info-value">{{ accessibility_settings.high_contrast|yesno:"Activado,Desactivado" }}</span>
+    </div>
+</div>
+
+<div class="profile-section">
+    <h2 class="section-title">Contacto de Emergencia</h2>
+    <div class="profile-info-item">
+        <span class="info-label">Nombre</span>
+        <span class="info-value">{{ user.emergency_contact_name|default:"No configurado" }}</span>
+    </div>
+    <div class="profile-info-item">
+        <span class="info-label">Teléfono</span>
+        <span class="info-value">{{ user.emergency_contact_phone|default:"No configurado" }}</span>
+    </div>
+</div>
+
+<a href="{% url 'security:profile-update' %}" class="edit-profile-btn">
+    <i class="fas fa-edit"></i>
+    <span>Editar Perfil</span>
+</a>
+{% endblock %}
+
+{% block extra_javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar gestos táctiles
+    const profileSections = document.querySelectorAll('.profile-section');
+    profileSections.forEach(section => {
+        const hammer = new Hammer(section);
+        hammer.on('tap', () => {
+            section.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                section.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+
+    // Animación de entrada
+    const elements = document.querySelectorAll('.profile-section, .stat-card');
+    elements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            el.style.transition = 'all 0.3s ease-out';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+task_manager.sqlite3
+venv
+.venv
+env
+.env
+
+migrations
+__pycache__

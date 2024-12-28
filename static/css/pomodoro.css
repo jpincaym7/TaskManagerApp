@@ -1,0 +1,142 @@
+.pomodoro-container {
+    padding-bottom: calc(80px + var(--safe-area-inset-bottom));
+}
+
+.timer-card {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.timer-display {
+    font-size: 4rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-family: 'SF Mono', monospace;
+}
+
+.timer-type {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.timer-progress {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: white;
+    width: 0%;
+    transition: width 1s linear;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.control-btn {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.control-btn.primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.control-btn.warning {
+    background: #FFA500;
+    color: white;
+}
+
+.control-btn.danger {
+    background: var(--color-accent);
+    color: white;
+}
+
+.task-selection {
+    background: var(--color-surface);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.task-list {
+    margin-top: 1rem;
+}
+
+.task-item {
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-background);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.task-item:active {
+    transform: scale(0.98);
+}
+
+.task-item.selected {
+    background: var(--color-primary);
+    color: white;
+}
+
+.sessions-summary {
+    background: var(--color-surface);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-background);
+}
+
+.session-status {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+.session-status.completed {
+    background: var(--color-success);
+    color: white;
+}
+
+.session-status.interrupted {
+    background: var(--color-accent);
+    color: white;
+}

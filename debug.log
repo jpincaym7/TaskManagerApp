@@ -1,0 +1,35 @@
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\task_manager\settings.py changed, reloading.
+Watching for file changes with StatReloader
+Starting new HTTPS connection (1): oauth2.googleapis.com:443
+https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+No se encontró SocialToken para el usuario davidfgx24@gmail.com
+No credentials available for user davidfgx24@gmail.com
+Credenciales: None
+Servicio: None
+No hay servicio de calendario disponible
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\task_manager\settings.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\task_manager\settings.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\task_manager\settings.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\apps\tasks\google_calendar.py changed, reloading.
+Watching for file changes with StatReloader
+Not Found: /favicon.ico
+No se encontró SocialToken para el usuario davidfgx24@gmail.com
+No credentials available for user davidfgx24@gmail.com
+Credenciales: None
+Servicio: None
+No hay servicio de calendario disponible
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\apps\tasks\views\task_view.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\apps\tasks\views\task_view.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\apps\tasks\views\task_view.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\apps\tasks\views\task_view.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\apps\tasks\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\DAV DEV\Desktop\PROYECTS\Desarrollo\task_manager\task_manager\settings.py changed, reloading.

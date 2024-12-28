@@ -1,0 +1,646 @@
+{% extends 'includes/base.html' %}
+{% load static %}
+
+{% block title %}Tareas | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="task-page">
+    <!-- Task Filters -->
+    <div class="filters-container">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Buscar tareas...">
+        </div>
+        
+        <div class="filter-chips">
+            <select class="filter-control" data-filter="status">
+                <option value="">Todos los estados</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+            
+            <select class="filter-control" data-filter="category">
+                <option value="">Todas las categorías</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            
+            <select class="filter-control" data-filter="priority">
+                <option value="">Todas las prioridades</option>
+                {% for value, label in priority_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Task List -->
+    <div id="tasks-container" class="tasks-container">
+        <!-- Tasks will be rendered here by JavaScript -->
+    </div>
+
+    <!-- Add Task FAB -->
+    <button class="fab-button" id="add-task-fab">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- Task Form Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nueva Tarea</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <form id="task-form" method="post" action="{% url 'tasks:task-create' %}" class="mobile-form">
+                {% csrf_token %}
+                
+                <!-- Title Section -->
+                <div class="form-section">
+                    <label for="title" class="form-label">Título</label>
+                    <input type="text" id="title" name="title" required 
+                           class="form-input"
+                           placeholder="¿Qué necesitas hacer?"
+                           maxlength="200">
+                    <div class="help-text">Escribe un título corto y descriptivo para tu tarea</div>
+                </div>
+
+                <!-- Description Section -->
+                <div class="form-section">
+                    <label for="description" class="form-label">Descripción</label>
+                    <textarea id="description" name="description" 
+                            class="form-input form-textarea"
+                            placeholder="Detalles adicionales de la tarea..."></textarea>
+                    <div class="help-text">Opcional: Agrega notas o detalles importantes</div>
+                </div>
+
+                <!-- Category Section -->
+                <div class="form-section">
+                    <label for="category" class="form-label">Categoría</label>
+                    <select id="category" name="category" class="form-select">
+                        <option value="">Selecciona una categoría</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" data-color="{{ category.color }}">
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="help-text">Agrupa tus tareas por categorías para mejor organización</div>
+                </div>
+
+                <!-- Priority Section -->
+                <div class="form-section">
+                    <label class="form-label">Prioridad</label>
+                    <div class="priority-buttons">
+                        {% for value, label in priority_choices %}
+                            <label class="priority-option">
+                                <input type="radio" name="priority" value="{{ value }}" {% if value == 2 %}checked{% endif %}>
+                                <span class="priority-label priority-{{ value }}">{{ label }}</span>
+                            </label>
+                        {% endfor %}
+
+                    </div>
+                    <div class="help-text">Establece la importancia de la tarea</div>
+                </div>
+
+                <!-- Status Section -->
+                <div class="form-section">
+                    <label for="status" class="form-label">Estado</label>
+                    <select id="status" name="status" class="form-select">
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if value == 'Media' %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="help-text">Indica el estado actual de la tarea</div>
+                </div>
+
+                <!-- Due Date Section -->
+                <div class="form-section">
+                    <label for="due_date" class="form-label">Fecha de vencimiento</label>
+                    <input type="datetime-local" id="due_date" name="due_date" 
+                           class="form-input">
+                    <div class="help-text">Opcional: ¿Cuándo debe completarse esta tarea?</div>
+                </div>
+
+                <!-- Pomodoros Section -->
+                <div class="form-section">
+                    <label for="estimated_pomodoros" class="form-label">Pomodoros estimados</label>
+                    <div class="pomodoro-input">
+                        <button type="button" class="pomodoro-btn minus">-</button>
+                        <input type="number" id="estimated_pomodoros" name="estimated_pomodoros" 
+                               value="1" min="1" class="form-input pomodoro-count" readonly>
+                        <button type="button" class="pomodoro-btn plus">+</button>
+                    </div>
+                    <div class="help-text">Estima cuántos pomodoros (25 min) necesitarás</div>
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <i class="fas fa-check"></i>
+                    <span>Guardar Tarea</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="delete-modal" id="delete-modal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="delete-modal-header">
+            <h3>Eliminar Tarea</h3>
+        </div>
+        <div class="delete-modal-body">
+            <p>¿Estás seguro de que deseas eliminar esta tarea?</p>
+            <p class="task-title-preview"></p>
+        </div>
+        <div class="delete-modal-actions">
+            <button class="cancel-delete-btn">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </button>
+            <button class="confirm-delete-btn">
+                <i class="fas fa-trash"></i>
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications Container -->
+<div class="notification-container"></div>
+
+{% endblock %}
+
+
+{% block extra_javascript %}
+<script src="{% static 'js/taskUI.js' %}"></script>
+{% endblock extra_javascript %}
+
+
+{% block extra_css %}
+<style>
+    .delete-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .delete-modal.active {
+        display: flex;
+        animation: modalFadeIn 0.2s ease-out;
+    }
+    
+    .delete-modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        width: 100%;
+        max-width: 320px;
+        text-align: center;
+        transform: scale(0.9);
+        opacity: 0;
+        animation: modalPop 0.3s ease-out forwards;
+    }
+    
+    .delete-modal-icon {
+        font-size: 48px;
+        color: #ef4444;
+        margin-bottom: 16px;
+    }
+    
+    .delete-modal-header h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+        color: #1f2937;
+    }
+    
+    .delete-modal-body {
+        margin-bottom: 24px;
+    }
+    
+    .delete-modal-body p {
+        margin: 0 0 8px 0;
+        color: #4b5563;
+    }
+    
+    .task-title-preview {
+        font-weight: 500;
+        color: #1f2937;
+    }
+    
+    .delete-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+    
+    .delete-modal-actions button {
+        padding: 12px 24px;
+        border-radius: 8px;
+        border: none;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s ease;
+    }
+    
+    .delete-modal-actions button:active {
+        transform: scale(0.95);
+    }
+    
+    .cancel-delete-btn {
+        background: #e5e7eb;
+        color: #4b5563;
+    }
+    
+    .confirm-delete-btn {
+        background: #ef4444;
+        color: white;
+    }
+    
+    @keyframes modalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes modalPop {
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+.task-page {
+    padding-bottom: calc(var(--safe-area-inset-bottom) + 80px);
+}
+
+.filters-container {
+    position: sticky;
+    top: 0;
+    background: var(--color-surface);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+    margin-bottom: 16px;
+}
+
+.search-bar {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.search-bar i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text);
+    opacity: 0.5;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+}
+
+.filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.filter-control {
+    padding: 8px 16px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.tasks-container {
+    padding: 16px;
+}
+
+.category-section {
+    margin-bottom: 24px;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.category-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.task-item {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+}
+
+.task-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.task-title {
+    font-weight: 500;
+    margin-right: 12px;
+}
+
+.task-priority {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.task-priority.high {
+    background: var(--color-accent);
+    color: white;
+}
+
+.task-details {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.task-details.visible {
+    display: block;
+}
+
+.fab-button {
+    position: fixed;
+    bottom: calc(80px + var(--safe-area-inset-bottom));
+    right: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 20px;
+    margin-top: auto;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    animation: modalSlideUp 0.3s ease-out forwards;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--color-text);
+    opacity: 0.7;
+}
+
+/* Form Styles */
+.mobile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    background: var(--color-surface);
+}
+
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.help-text {
+    font-size: 12px;
+    color: var(--color-text-light);
+}
+
+.priority-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.priority-option {
+    flex: 1;
+}
+
+.priority-option input {
+    display: none;
+}
+
+.priority-label {
+    display: block;
+    padding: 8px;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,0,0,0.1);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.priority-option input:checked + .priority-label {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.priority-1 { background: #E5E7EB; }
+.priority-2 { background: #FEF3C7; }
+.priority-3 { background: #FEE2E2; }
+
+.pomodoro-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pomodoro-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,0,0,0.1);
+    background: var(--color-surface);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.pomodoro-count {
+    width: 60px;
+    text-align: center;
+}
+
+.submit-button {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+
+@keyframes modalSlideUp {
+    to { transform: translateY(0); }
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    margin-right: 8px;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--color-text);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.action-button:hover {
+    opacity: 1;
+}
+
+.action-button.edit {
+    color: var(--color-primary);
+}
+
+.action-button.delete {
+    color: var(--color-danger, #dc2626);
+}
+
+.task-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-title {
+    flex: 1;
+    margin: 0;
+}
+</style>
+{% endblock %}

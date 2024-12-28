@@ -1,0 +1,404 @@
+{% extends 'includes/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.update-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 100px;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 20px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.step-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-background);
+    border: 2px solid var(--color-primary);
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-dot {
+    background: var(--color-primary);
+    transform: scale(1.2);
+}
+
+.step.completed .step-dot {
+    background: var(--color-success);
+    border-color: var(--color-success);
+}
+
+.step-label {
+    font-size: 12px;
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+.step-content {
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.step-content.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--color-background);
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.nav-buttons {
+    position: fixed;
+    bottom: 90px;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-prev {
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+.btn-next {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.btn-submit {
+    background: var(--color-success);
+    color: white;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="update-container">
+    <div class="step-indicator">
+        <div class="step active" data-step="1">
+            <div class="step-dot"></div>
+            <span class="step-label">Información Básica</span>
+        </div>
+        <div class="step" data-step="2">
+            <div class="step-dot"></div>
+            <span class="step-label">Notificaciones</span>
+        </div>
+        <div class="step" data-step="3">
+            <div class="step-dot"></div>
+            <span class="step-label">Contacto Emergencia</span>
+        </div>
+    </div>
+
+    <form method="post" id="profile-update-form">
+        {% csrf_token %}
+        
+        <div class="step-content active" data-step="1">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+            </div>
+        </div>
+
+        <div class="step-content" data-step="2">
+            <div class="form-group">
+                <label class="form-label">Hora de Notificaciones</label>
+                {{ form.preferred_notification_time }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Frecuencia de Notificaciones</label>
+                {{ form.notification_frequency }}
+            </div>
+        </div>
+
+        <div class="step-content" data-step="3">
+            <div class="form-group">
+                <label class="form-label">Nombre de Contacto</label>
+                {{ form.emergency_contact_name }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Teléfono de Contacto</label>
+                {{ form.emergency_contact_phone }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email de Contacto</label>
+                {{ form.emergency_contact_email }}
+            </div>
+        </div>
+    </form>
+
+    <div class="nav-buttons">
+        <button class="nav-btn btn-prev" id="prevBtn" style="display: none;">
+            <i class="fas fa-arrow-left"></i> Anterior
+        </button>
+        <button class="nav-btn btn-next" id="nextBtn">
+            Siguiente <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 3;
+    const form = document.getElementById('profile-update-form');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // Inicializar gestos táctiles
+    const container = document.querySelector('.update-container');
+    const hammer = new Hammer(container);
+    
+    hammer.on('swipeleft', () => {
+        if (currentStep < totalSteps) {
+            navigateToStep(currentStep + 1);
+        }
+    });
+    
+    hammer.on('swiperight', () => {
+        if (currentStep > 1) {
+            navigateToStep(currentStep - 1);
+        }
+    });
+
+    function navigateToStep(step) {
+        // Validar paso actual antes de avanzar
+        if (step > currentStep && !validateCurrentStep()) {
+            return;
+        }
+
+        // Actualizar indicadores de paso
+        document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+        document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
+        if (currentStep < step) {
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('completed');
+        }
+
+        // Mostrar/ocultar contenido de pasos
+        document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
+        document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
+
+        // Actualizar navegación
+        currentStep = step;
+        updateNavigation();
+
+        // Animar transición
+        const activeContent = document.querySelector(`.step-content[data-step="${step}"]`);
+        activeContent.style.animation = 'none';
+        activeContent.offsetHeight; // Trigger reflow
+        activeContent.style.animation = null;
+    }
+
+    function validateCurrentStep() {
+        const inputs = document.querySelector(`.step-content[data-step="${currentStep}"]`)
+            .querySelectorAll('input, select');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (input.required && !input.value) {
+                isValid = false;
+                input.classList.add('error');
+                showError(input);
+            }
+        });
+        
+        return isValid;
+    }
+
+    function showError(input) {
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.textContent = 'Este campo es requerido';
+        errorMsg.style.color = 'var(--color-accent)';
+        errorMsg.style.fontSize = '12px';
+        errorMsg.style.marginTop = '4px';
+        
+        input.parentNode.appendChild(errorMsg);
+        setTimeout(() => {
+            errorMsg.remove();
+        }, 3000);
+    }
+
+    function updateNavigation() {
+        // Mostrar/ocultar botones según el paso actual
+        prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+        
+        if (currentStep === totalSteps) {
+            nextBtn.textContent = 'Guardar Cambios';
+            nextBtn.className = 'nav-btn btn-submit';
+        } else {
+            nextBtn.innerHTML = 'Siguiente <i class="fas fa-arrow-right"></i>';
+            nextBtn.className = 'nav-btn btn-next';
+        }
+    }
+
+    // Event Listeners para navegación
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            navigateToStep(currentStep - 1);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < totalSteps) {
+            navigateToStep(currentStep + 1);
+        } else {
+            submitForm();
+        }
+    });
+
+    function submitForm() {
+        // Añadir clase de loading al botón
+        nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        nextBtn.disabled = true;
+
+        // Recolectar todos los datos del formulario
+        const formData = new FormData(form);
+
+        // Enviar formulario via AJAX
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar notificación de éxito
+                showNotification('¡Perfil actualizado con éxito!', 'success');
+                
+                // Redirigir después de un breve delay
+                setTimeout(() => {
+                    window.location.href = '{% url "security:profile" %}';
+                }, 1500);
+            } else {
+                showNotification('Hubo un error al actualizar el perfil', 'error');
+                nextBtn.innerHTML = 'Guardar Cambios';
+                nextBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            showNotification('Error de conexión', 'error');
+            nextBtn.innerHTML = 'Guardar Cambios';
+            nextBtn.disabled = false;
+        });
+    }
+
+    function showNotification(message, type) {
+        // Crear elemento de notificación
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${icon} notification-icon"></i>
+                <span class="notification-message">${message}</span>
+            </div>
+        `;
+
+        // Añadir al contenedor de notificaciones
+        let container = document.querySelector('.notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'notification-container';
+            document.body.appendChild(container);
+        }
+
+        container.appendChild(notification);
+
+        // Animar entrada
+        notification.style.animation = 'slideIn 0.3s ease-out';
+
+        // Remover después de 3 segundos
+        setTimeout(() => {
+            notification.classList.add('hiding');
+            setTimeout(() => {
+                notification.remove();
+                if (container.children.length === 0) {
+                    container.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Mejorar la experiencia táctil en inputs
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            input.style.transform = 'scale(1.02)';
+        });
+
+        input.addEventListener('blur', () => {
+            input.style.transform = 'scale(1)';
+        });
+
+        // Para inputs tipo time en iOS
+        if (input.type === 'time') {
+            input.style.webkitAppearance = 'none';
+            input.style.appearance = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

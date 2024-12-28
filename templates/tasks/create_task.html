@@ -1,0 +1,178 @@
+{% extends "includes/base.html" %}
+{% load static %}
+
+{% block title %}Nueva Tarea{% endblock %}
+
+{% block extra_css %}
+<style>
+.create-task-container {
+    padding: 1.5rem;
+    max-width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2d3436;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e1e1e1;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #6C63FF;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+}
+
+.priority-selector {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.priority-option {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.priority-option.selected {
+    background: #6C63FF;
+    color: white;
+    transform: scale(1.05);
+}
+
+.pomodoro-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: #f8f9fa;
+}
+
+.submit-button {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 3rem);
+    padding: 1rem;
+    border: none;
+    border-radius: 0.75rem;
+    background: #6C63FF;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+    transition: all 0.3s ease;
+}
+
+.submit-button:active {
+    transform: translateX(-50%) scale(0.98);
+}
+
+.category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.category-chip {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: #f1f1f1;
+    transition: all 0.3s ease;
+}
+
+.category-chip.selected {
+    background: #6C63FF;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-task-container">
+    <form method="post" id="taskForm">
+        {% csrf_token %}
+        
+        <div class="form-group" style="animation-delay: 0s">
+            <label class="form-label">Título</label>
+            {{ form.title }}
+        </div>
+
+        <div class="form-group" style="animation-delay: 0.1s">
+            <label class="form-label">Descripción</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group" style="animation-delay: 0.2s">
+            <label class="form-label">Categoría</label>
+            <div class="category-chips">
+                {% for category in form.category.field.queryset %}
+                <div class="category-chip" data-value="{{ category.id }}">
+                    {{ category.name }}
+                </div>
+                {% endfor %}
+            </div>
+            {{ form.category.as_hidden }}
+        </div>
+
+        <div class="form-group" style="animation-delay: 0.3s">
+            <label class="form-label">Prioridad</label>
+            <div class="priority-selector">
+                <div class="priority-option" data-value="low">Baja</div>
+                <div class="priority-option" data-value="medium">Media</div>
+                <div class="priority-option" data-value="high">Alta</div>
+            </div>
+            {{ form.priority.as_hidden }}
+        </div>
+
+        <div class="form-group" style="animation-delay: 0.4s">
+            <label class="form-label">Fecha límite</label>
+            {{ form.due_date }}
+        </div>
+
+        <div class="form-group" style="animation-delay: 0.5s">
+            <div class="pomodoro-toggle">
+                <label>
+                    {{ form.pomodoro_enabled }}
+                    Usar Pomodoro
+                </label>
+                <div class="pomodoro-settings" style="display: none;">
+                    {{ form.estimated_pomodoros }}
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-button">
+            Crear Tarea
+        </button>
+    </form>
+</div>
+{% endblock %}

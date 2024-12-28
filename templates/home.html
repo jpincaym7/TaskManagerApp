@@ -1,0 +1,203 @@
+{% extends 'includes/base.html' %}
+{% load static %}
+
+{% block title %}MindHelper - Tu asistente de memoria{% endblock %}
+
+{% block content %}
+
+{% block messages %}
+        {% if messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for message in messages %}
+                    notifications.show("{{ message }}", "{{ message.tags }}");
+                {% endfor %}
+            });
+        </script>
+        {% endif %}
+{% endblock %}
+
+<div class="hero-section">
+    <h1 class="hero-title">Organiza tu día con confianza</h1>
+    <p class="hero-subtitle">Tu asistente personal para mantener tus tareas y recordatorios en orden</p>
+</div>
+
+<div class="features-grid">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-list-check"></i>
+        </div>
+        <h3>Tareas Jerárquicas</h3>
+        <p>Organiza tus actividades en pasos simples y manejables. Ideal para mantener un seguimiento claro de tus progresos.</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+        <h3>Método Pomodoro</h3>
+        <p>Mantén tu concentración con intervalos de trabajo estructurados. Toma descansos regulares para mantener tu mente fresca.</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-bell"></i>
+        </div>
+        <h3>Recordatorios Inteligentes</h3>
+        <p>Recibe notificaciones amigables para tus tareas importantes. Nunca más te preocupes por olvidar algo importante.</p>
+    </div>
+</div>
+
+<div class="get-started-section">
+    <h2>¿Listo para empezar?</h2>
+    <p>Únete a nuestra comunidad y mejora tu organización diaria</p>
+    <div class="cta-buttons">
+        {% if user.is_authenticated %}
+        <a href="" class="btn btn-primary">Ir a mis tareas</a>
+        {% else %}
+        <a href="{% url 'security:register' %}" class="btn btn-primary">Crear cuenta</a>
+        <a href="{% url 'security:login' %}" class="btn btn-secondary">Iniciar sesión</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="info-section">
+    <div class="info-card">
+        <h3>¿Por qué MindHelper?</h3>
+        <ul class="benefits-list">
+            <li>
+                <i class="fas fa-check"></i>
+                <span>Interfaz intuitiva y fácil de usar</span>
+            </li>
+            <li>
+                <i class="fas fa-check"></i>
+                <span>Recordatorios personalizados que se adaptan a ti</span>
+            </li>
+            <li>
+                <i class="fas fa-check"></i>
+                <span>Sistema de organización simplificado</span>
+            </li>
+            <li>
+                <i class="fas fa-check"></i>
+                <span>Apoyo para la gestión diaria de tareas</span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 48px 24px;
+        background: var(--gradient-primary);
+        border-radius: var(--radius-lg);
+        color: white;
+        margin-bottom: 32px;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .feature-card {
+        background: var(--color-surface);
+        padding: 24px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        color: var(--color-primary);
+        margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+        margin-bottom: 12px;
+        color: var(--color-secondary);
+    }
+
+    .get-started-section {
+        text-align: center;
+        padding: 48px 24px;
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        margin-bottom: 32px;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 24px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        text-decoration: none;
+        transition: transform 0.2s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-primary {
+        background: var(--color-primary);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: var(--color-surface);
+        color: var(--color-primary);
+        border: 2px solid var(--color-primary);
+    }
+
+    .info-section {
+        margin-bottom: 32px;
+    }
+
+    .info-card {
+        background: var(--color-surface);
+        padding: 24px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+    }
+
+    .benefits-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 16px;
+    }
+
+    .benefits-list li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .benefits-list i {
+        color: var(--color-success);
+    }
+</style>
+{% endblock %}

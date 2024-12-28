@@ -1,0 +1,49 @@
+{% extends "includes/base.html" %}
+{% load static %}
+
+{% block title %}Calendario de Tareas - MindHelper{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="calendar-container">
+        <!-- El contenido del calendario será inyectado por JavaScript -->
+    </div>
+</div>
+
+<!-- Template para el Task API -->
+<script id="task-data" type="application/json">
+    {
+        "tasks": [
+            {% for task in tasks %}
+            {
+                "id": {{ task.id }},
+                "title": "{{ task.title|escapejs }}",
+                "description": "{{ task.description|escapejs }}",
+                "category": {{ task.category.id|default:'null' }},
+                "priority": {{ task.priority }},
+                "status": "{{ task.status }}",
+                "due_date": "{{ task.due_date|date:'c' }}",
+                "reminder_time": {% if task.reminder_time %}"{{ task.reminder_time|date:'c' }}"{% else %}null{% endif %}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        "categories": [
+            {% for category in categories %}
+            {
+                "id": {{ category.id }},
+                "name": "{{ category.name|escapejs }}",
+                "color": "{{ category.color }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+</script>
+{% endblock %}
+
+{% block extra_javascript %}
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,536 @@
+:root {
+    --color-primary: #6C63FF;
+    --color-secondary: #2A2A72;
+    --color-accent: #FF6B6B;
+    --color-success: #4CAF50;
+    --color-background: #F8F9FF;
+    --color-surface: #FFFFFF;
+    --color-text: #2C3E50;
+    --gradient-primary: linear-gradient(135deg, #6C63FF 0%, #2A2A72 100%);
+    --shadow-sm: 0 2px 4px rgba(108, 99, 255, 0.1);
+    --shadow-md: 0 4px 6px rgba(108, 99, 255, 0.15);
+    --shadow-lg: 0 8px 16px rgba(108, 99, 255, 0.2);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: var(--color-background);
+    color: var(--color-text);
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-logo {
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    animation: pulse 2s infinite;
+}
+
+.loading-logo i {
+    font-size: 48px;
+    color: var(--color-primary);
+    animation: bounce 2s infinite;
+}
+
+.loading-text {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-top: 16px;
+}
+
+/* Auth Banner */
+.auth-banner {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--color-surface);
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+    animation: slideIn 0.5s ease-out;
+}
+
+.auth-banner i {
+    color: var(--color-primary);
+}
+
+.auth-banner a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Modern Navbar */
+.nav-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background: var(--color-surface);
+    margin-bottom: calc(var(--safe-area-inset-bottom) + 16px);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-around;
+    z-index: 100;
+}
+
+.nav-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #94A3B8;
+    transition: 0.3s ease;
+    padding: 8px 16px;
+}
+
+.nav-item.active {
+    color: var(--color-primary);
+}
+
+.nav-item i {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.nav-item span {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.nav-indicator {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    opacity: 0;
+    transition: 0.3s ease;
+}
+
+.nav-item.active .nav-indicator {
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Main Content */
+.app-container {
+    height: 100vh;
+    padding: 16px;
+    padding-bottom: calc(80px + var(--safe-area-inset-bottom));
+    overflow-y: auto;
+}
+
+.content-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Añade esto a tu archivo styles.css */
+
+.notification-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 400px;
+}
+
+.notification {
+    padding: 16px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideIn 0.3s ease-out;
+    background: white;
+    font-family: 'Poppins', sans-serif;
+}
+
+.notification.success {
+    border-left: 4px solid #4CAF50;
+}
+
+.notification.error {
+    border-left: 4px solid #f44336;
+}
+
+.notification.warning {
+    border-left: 4px solid #ff9800;
+}
+
+.notification.info {
+    border-left: 4px solid #2196F3;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.notification-icon {
+    font-size: 20px;
+}
+
+.notification.success .notification-icon {
+    color: #4CAF50;
+}
+
+.notification.error .notification-icon {
+    color: #f44336;
+}
+
+.notification.warning .notification-icon {
+    color: #ff9800;
+}
+
+.notification.info .notification-icon {
+    color: #2196F3;
+}
+
+.notification-message {
+    font-size: 14px;
+    color: #333;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 8px;
+    font-size: 18px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+.notification.hiding {
+    animation: slideOut 0.3s ease-out forwards;
+}
+
+/* Profile Trigger Button */
+.profile-trigger {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--color-surface);
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    z-index: 101;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.profile-trigger:active {
+    transform: scale(0.95);
+}
+
+/* Profile Sidebar */
+.profile-sidebar {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 85%;
+    max-width: 320px;
+    height: 100vh;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.profile-sidebar.active {
+    right: 0;
+}
+
+/* Profile Header */
+.profile-header {
+    padding: 2rem 1.5rem;
+    background: var(--gradient-primary);
+    color: white;
+    text-align: center;
+    position: relative;
+}
+
+.close-profile {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s;
+}
+
+.close-profile:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar i {
+    font-size: 3rem;
+    color: var(--color-primary);
+}
+
+.profile-name {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.profile-email {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Profile Menu */
+.profile-menu {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    color: var(--color-text);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    margin-bottom: 0.5rem;
+}
+
+.profile-menu-item:hover {
+    background: var(--color-background);
+    transform: translateX(4px);
+}
+
+.profile-menu-item i {
+    margin-right: 1rem;
+    color: var(--color-primary);
+    width: 20px;
+}
+
+/* Profile Footer */
+.profile-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-background);
+}
+
+.logout-button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.logout-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+/* Overlay */
+.profile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    z-index: 998;
+    backdrop-filter: blur(4px);
+}
+
+.profile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Botón de navegación */
+.nav-trigger {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    background: var(--color-surface);
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    z-index: 101;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-trigger:active {
+    transform: scale(0.95);
+}
+
+/* Modificación del nav existente para animación */
+.nav-bottom {
+    transform: translateX(-50%) translateY(0);
+    transition: transform 0.3s ease;
+}
+
+.nav-bottom.hidden {
+    transform: translateX(-50%) translateY(100%);
+}
+
+/* Animación del ícono */
+.nav-trigger i {
+    transition: transform 0.3s ease;
+}
+
+.nav-trigger.active i {
+    transform: rotate(180deg);
+}
+
+/* Ajuste del container para evitar superposición */
+.app-container {
+    padding-top: 80px;
+}
