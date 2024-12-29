@@ -59,4 +59,86 @@ class Task(models.Model):
                 args=[self.id],
                 eta=self.reminder_time
             )
+        
+    def handle_session_pause(self, session):
+        """
+        Handle task status when a Pomodoro session is paused
+        
+        Args:
+            session: PomodoroSession instance that was paused
+        """
+        # Only update task status if this is an active task
+        if self.status == 'in_progress':
+            # Keep track of the pause in task metadata
+            self.updated_at = timezone.now()
+            self.save(update_fields=['updated_at'])
+            
+            # You might want to create a TaskEvent to track this pause
+            TaskEvent.objects.create(
+                task=self,
+                event_type='session_paused',
+                description=f'Sesión de pomodoro pausada después de {session.actual_duration or 0} minutos'
+            )
 
+    def handle_session_cancellation(self, session):
+        """
+        Handle task status when a Pomodoro session is cancelled
+        
+        Args:
+            session: PomodoroSession instance that was cancelled
+        """
+        # If this was the only active session for this task, update task status
+        active_sessions = self.pomodorosession_set.filter(
+            status__in=['in_progress', 'paused']
+        ).exclude(id=session.id).exists()
+        
+        if not active_sessions and self.status == 'in_progress':
+            self.status = 'pending'
+            self.updated_at = timezone.now()
+            self.save(update_fields=['status', 'updated_at'])
+            
+            # Create a task event to track this cancellation
+            TaskEvent.objects.create(
+                task=self,
+                event_type='session_cancelled',
+                description=f'Sesión de pomodoro cancelada después de {session.actual_duration or 0} minutos'
+            )
+
+    def handle_session_interruption(self, session):
+        """
+        Handle task status when a Pomodoro session is interrupted
+        
+        Args:
+            session: PomodoroSession instance that was interrupted
+        """
+        self.updated_at = timezone.now()
+        self.save(update_fields=['updated_at'])
+        
+        # Create a task event to track this interruption
+        TaskEvent.objects.create(
+            task=self,
+            event_type='session_interrupted',
+            description=f'Sesión de pomodoro interrumpida'
+        )
+
+class TaskEvent(models.Model):
+    """Model to track important events in a task's lifecycle"""
+    EVENT_TYPES = [
+        ('session_started', 'Sesión Iniciada'),
+        ('session_paused', 'Sesión Pausada'),
+        ('session_resumed', 'Sesión Reanudada'),
+        ('session_completed', 'Sesión Completada'),
+        ('session_cancelled', 'Sesión Cancelada'),
+        ('session_interrupted', 'Sesión Interrumpida'),
+    ]
+    
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    event_type = models.CharField(max_length=50, choices=EVENT_TYPES)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['task', 'event_type', 'created_at'])
+        ]

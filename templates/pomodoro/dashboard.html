@@ -1,233 +1,347 @@
-{% extends 'includes/base.html' %}
+{% extends "includes/base.html" %}
 {% load static %}
 
-{% block title %}Pomodoro - MindHelper{% endblock %}
+{% block title %}Pomodoro | MindHelper{% endblock %}
 
-{% block extra_css %}
-<style>
-.pomodoro-container {
-    padding: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.timer-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-    margin-bottom: 24px;
-}
-
-.timer-display {
-    font-size: 4rem;
-    font-weight: 600;
-    color: var(--color-primary);
-    margin: 20px 0;
-    font-family: 'Poppins', sans-serif;
-}
-
-.session-type {
-    font-size: 1.2rem;
-    color: var(--color-text);
-    margin-bottom: 16px;
-    font-weight: 500;
-}
-
-.timer-controls {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 24px;
-}
-
-.timer-btn {
-    padding: 12px 24px;
-    border-radius: var(--radius-md);
-    border: none;
-    font-weight: 500;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.timer-btn:active {
-    transform: scale(0.95);
-}
-
-.btn-start {
-    background: var(--color-primary);
-    color: white;
-}
-
-.btn-pause {
-    background: var(--color-accent);
-    color: white;
-}
-
-.btn-cancel {
-    background: #f44336;
-    color: white;
-}
-
-.progress-ring {
-    position: relative;
-    width: 250px;
-    height: 250px;
-    margin: 0 auto;
-}
-
-.progress-ring__circle {
-    transform: rotate(-90deg);
-    transform-origin: 50% 50%;
-    transition: stroke-dashoffset 0.3s ease;
-}
-
-.task-info {
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    margin-top: 20px;
-    box-shadow: var(--shadow-sm);
-}
-
-.task-title {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-}
-
-.task-meta {
-    display: flex;
-    justify-content: space-between;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-top: 24px;
-}
-
-.stat-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    text-align: center;
-    box-shadow: var(--shadow-sm);
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--color-primary);
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: #666;
-    margin-top: 4px;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
-.timer-active {
-    animation: pulse 2s infinite;
-}
-</style>
-{% endblock %}
 
 {% block content %}
-<div class="pomodoro-container">
-    <div class="timer-card">
-        <div class="session-type">
-            <span id="session-label">{{ active_session.session_type|default:"Pomodoro" }}</span>
+<div class="flex flex-col min-h-screen bg-gray-50">
+  <!-- Timer Section -->
+  <div class="relative flex-none bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-4">
+    <!-- Task Quick Select -->
+    <div class="absolute top-4 right-4 z-10">
+      <button id="taskToggle" class="flex items-center space-x-2 bg-white/20 rounded-full px-3 py-1.5 text-sm font-medium backdrop-blur-sm">
+        <span class="task-name truncate max-w-[150px]">Select Task</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Timer Display -->
+    <div class="flex flex-col items-center justify-center pt-12 pb-6">
+      <div class="relative">
+        <svg class="w-48 h-48 transform -rotate-90">
+          <circle
+            cx="96"
+            cy="96"
+            r="88"
+            stroke="currentColor"
+            stroke-width="8"
+            fill="none"
+            class="text-white/20"
+          />
+          <circle
+            id="timerProgress"
+            cx="96"
+            cy="96"
+            r="88"
+            stroke="currentColor"
+            stroke-width="8"
+            fill="none"
+            stroke-dasharray="552.92"
+            stroke-dashoffset="0"
+            class="text-white transition-all duration-1000"
+          />
+        </svg>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+          <div id="timer" class="text-4xl font-bold">25:00</div>
+          <div id="sessionType" class="text-sm opacity-80">Pomodoro</div>
         </div>
-        
-        <div class="progress-ring">
-            <svg width="250" height="250" viewBox="0 0 250 250">
-                <circle 
-                    class="progress-ring__circle-bg"
-                    stroke="#eee"
-                    stroke-width="8"
-                    fill="transparent"
-                    r="116"
-                    cx="125"
-                    cy="125"/>
-                <circle 
-                    class="progress-ring__circle"
-                    stroke="var(--color-primary)"
-                    stroke-width="8"
-                    fill="transparent"
-                    r="116"
-                    cx="125"
-                    cy="125"/>
-            </svg>
-            <div class="timer-display" id="time-display">
-                25:00
+      </div>
+    </div>
+
+    <!-- Timer Controls -->
+    <div class="flex justify-center space-x-4 pb-4">
+      <button id="mainActionBtn" class="flex items-center justify-center w-14 h-14 rounded-full bg-white text-purple-600 shadow-lg active:scale-95 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Section -->
+  <div class="flex-1 px-4 py-6">
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="text-2xl font-bold text-purple-600">{{ stats.completed_pomodoros }}</div>
+        <div class="text-sm text-gray-600">Today's Focus</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="text-2xl font-bold text-purple-600">{{ stats.total_focus_time }}m</div>
+        <div class="text-sm text-gray-600">Focus Time</div>
+      </div>
+    </div>
+
+    <!-- Today's Sessions -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="p-4 border-b">
+        <h3 class="font-semibold text-gray-900">Today's Sessions</h3>
+      </div>
+      <div class="divide-y">
+        {% for session in today_sessions %}
+          <div class="flex items-center justify-between p-4">
+            <div>
+              <div class="font-medium text-gray-900">{{ session.task.title }}</div>
+              <div class="text-sm text-gray-500">
+                {{ session.get_session_type_display }} • {{ session.started_at|time:"H:i" }}
+              </div>
             </div>
-        </div>
-
-        <div class="timer-controls">
-            <button class="timer-btn btn-start" id="start-btn">
-                <i class="fas fa-play"></i>
-                <span>Iniciar</span>
-            </button>
-            <button class="timer-btn btn-pause" id="pause-btn" style="display: none;">
-                <i class="fas fa-pause"></i>
-                <span>Pausar</span>
-            </button>
-            <button class="timer-btn btn-cancel" id="cancel-btn" style="display: none;">
-                <i class="fas fa-times"></i>
-                <span>Cancelar</span>
-            </button>
-        </div>
+            <div class="text-sm font-medium {% if session.status == 'completed' %}text-green-600{% else %}text-gray-500{% endif %}">
+              {% if session.actual_duration %}
+                {{ session.actual_duration }}m
+              {% else %}
+                In Progress
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="p-4 text-center text-gray-500">No sessions today</div>
+        {% endfor %}
+      </div>
     </div>
+  </div>
 
-    {% if active_session and active_session.task %}
-    <div class="task-info">
-        <div class="task-title">
-            <i class="fas fa-tasks"></i>
-            {{ active_session.task.title }}
+  <!-- Task Selection Modal -->
+  <div id="taskModal" class="fixed inset-0 bg-black/50 z-50 hidden">
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-xl max-h-[70vh] overflow-auto">
+      <div class="sticky top-0 bg-white border-b p-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold text-gray-900">Select Task</h3>
+          <button id="closeTaskModal" class="text-gray-400 hover:text-gray-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <div class="task-meta">
-            <span>
-                <i class="fas fa-clock"></i>
-                {{ active_session.task.completed_pomodoros }}/{{ active_session.task.estimated_pomodoros }} pomodoros
-            </span>
-            <span>
-                <i class="fas fa-calendar"></i>
-                {{ active_session.task.due_date|date:"d M" }}
-            </span>
-        </div>
+      </div>
+      <div class="p-4">
+        {% for task in pending_tasks %}
+          <button 
+            data-task-id="{{ task.id }}" 
+            class="task-option w-full text-left mb-2 p-3 rounded-lg bg-gray-50 hover:bg-gray-100"
+          >
+            <div class="font-medium text-gray-900">{{ task.title }}</div>
+            <div class="text-sm text-gray-500">
+              {{ task.completed_pomodoros }}/{{ task.estimated_pomodoros }} pomodoros
+            </div>
+          </button>
+        {% empty %}
+          <div class="text-center text-gray-500 py-4">No pending tasks</div>
+        {% endfor %}
+      </div>
     </div>
-    {% endif %}
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-value">{{ completed_pomodoros }}</div>
-            <div class="stat-label">Pomodoros Hoy</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ total_focus_time }}</div>
-            <div class="stat-label">Minutos Enfocado</div>
-        </div>
-    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_javascript %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-<script src="{% static 'js/pomodoro.js' %}"></script>
-<script src="{% static 'js/sw.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Core Elements
+  const timer = document.getElementById('timer');
+  const sessionType = document.getElementById('sessionType');
+  const mainActionBtn = document.getElementById('mainActionBtn');
+  const timerProgress = document.getElementById('timerProgress');
+  const taskModal = document.getElementById('taskModal');
+  const taskToggle = document.getElementById('taskToggle');
+  const closeTaskModal = document.getElementById('closeTaskModal');
+  
+  // State
+  let timeLeft = {{ settings.pomodoro_duration }} * 60;
+  let totalTime = timeLeft;
+  let timerId = null;
+  let activeSession = null;
+
+  // Constants
+  const CIRCUMFERENCE = 2 * Math.PI * 88;
+  timerProgress.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
+
+  // Timer Functions
+  function updateProgress(timeLeft) {
+    const progress = timeLeft / totalTime;
+    const offset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
+    timerProgress.style.strokeDashoffset = offset;
+  }
+
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  // Session Management
+  async function startSession(taskId) {
+    try {
+      const response = await fetch('{% url "pomodoro:pomodoro_api" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          action: 'start',
+          task_id: taskId,
+          session_type: 'pomodoro'
+        })
+      });
+      
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      
+      activeSession = data;
+      timeLeft = data.duration * 60;
+      totalTime = timeLeft;
+      startTimerCountdown();
+      updateUIForActiveSession();
+      
+    } catch (error) {
+      showNotification('error', error.message);
+    }
+  }
+
+  function startTimerCountdown() {
+    updateMainActionButton('pause');
+    timerId = setInterval(() => {
+      timeLeft--;
+      timer.textContent = formatTime(timeLeft);
+      updateProgress(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(timerId);
+        completeSession();
+      }
+    }, 1000);
+  }
+
+  async function toggleTimer() {
+    if (!activeSession) return;
+
+    try {
+      const action = activeSession.status === 'in_progress' ? 'pause' : 'resume';
+      const response = await fetch('{% url "pomodoro:pomodoro_api" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          action: action,
+          session_id: activeSession.session_id
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      if (action === 'pause') {
+        clearInterval(timerId);
+        updateMainActionButton('play');
+      } else {
+        startTimerCountdown();
+      }
+      
+      activeSession = data;
+      
+    } catch (error) {
+      showNotification('error', error.message);
+    }
+  }
+
+  // UI Updates
+  function updateMainActionButton(state) {
+    const icons = {
+      play: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>`,
+      pause: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>`
+    };
+    mainActionBtn.innerHTML = icons[state];
+  }
+
+  function updateUIForActiveSession() {
+    if (!activeSession) return;
+    
+    const taskName = document.querySelector('.task-name');
+    taskName.textContent = activeSession.task.title;
+    sessionType.textContent = activeSession.session_type.replace('_', ' ').toUpperCase();
+    updateMainActionButton(activeSession.status === 'in_progress' ? 'pause' : 'play');
+  }
+
+  // Event Listeners
+  mainActionBtn.addEventListener('click', () => {
+    if (activeSession) {
+      toggleTimer();
+    } else {
+      taskModal.classList.remove('hidden');
+    }
+  });
+
+  taskToggle.addEventListener('click', () => {
+    if (!activeSession) {
+      taskModal.classList.remove('hidden');
+    }
+  });
+
+  closeTaskModal.addEventListener('click', () => {
+    taskModal.classList.add('hidden');
+  });
+
+  document.querySelectorAll('.task-option').forEach(button => {
+    button.addEventListener('click', () => {
+      const taskId = button.dataset.taskId;
+      startSession(taskId);
+      taskModal.classList.add('hidden');
+    });
+  });
+
+  // Initialize
+  {% if active_session %}
+    activeSession = {
+      session_id: {{ active_session.id }},
+      duration: {{ active_session.duration }},
+      started_at: new Date('{{ active_session.started_at.isoformat }}'),
+      status: '{{ active_session.status }}',
+      task: {
+        id: {{ active_session.task.id }},
+        title: '{{ active_session.task.title }}'
+      }
+    };
+
+    if (activeSession.status === 'in_progress') {
+      const elapsedSeconds = Math.floor((new Date() - new Date(activeSession.started_at)) / 1000);
+      timeLeft = Math.max(0, (activeSession.duration * 60) - elapsedSeconds);
+      totalTime = activeSession.duration * 60;
+      startTimerCountdown();
+    }
+    
+    updateUIForActiveSession();
+  {% endif %}
+
+  // Utilities
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function showNotification(type, message) {
+    // Implementation of notification system...
+  }
+});
+</script>
 {% endblock %}

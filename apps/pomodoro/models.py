@@ -108,7 +108,7 @@ class PomodoroSession(models.Model):
         super().save(*args, **kwargs)
 
     def pause(self):
-        """Pausar la sesión actual"""
+        """Pausar la sesión actual y actualizar el estado de la tarea"""
         if self.status != 'in_progress':
             raise ValidationError('Solo se pueden pausar sesiones en progreso')
         
@@ -116,28 +116,23 @@ class PomodoroSession(models.Model):
         self.last_pause_start = timezone.now()
         self.pause_count += 1
         self.save()
-
-    def resume(self):
-        """Reanudar una sesión pausada"""
-        if self.status != 'paused':
-            raise ValidationError('Solo se pueden reanudar sesiones pausadas')
         
-        pause_duration = int((timezone.now() - self.last_pause_start).total_seconds())
-        self.total_pause_duration += pause_duration
-        self.last_pause_start = None
-        self.status = 'in_progress'
-        self.save()
+        # Notify task about the pause
+        self.task.handle_session_pause(self)
 
     def interrupt(self):
-        """Registrar una interrupción en la sesión"""
+        """Registrar una interrupción en la sesión y notificar a la tarea"""
         if self.status not in ['in_progress', 'paused']:
             raise ValidationError('Solo se pueden interrumpir sesiones activas o pausadas')
         
         self.interruption_count += 1
         self.save()
+        
+        # Notify task about the interruption
+        self.task.handle_session_interruption(self)
 
     def cancel(self):
-        """Cancelar la sesión actual"""
+        """Cancelar la sesión actual y actualizar el estado de la tarea"""
         if self.status not in ['in_progress', 'paused']:
             raise ValidationError('Solo se pueden cancelar sesiones activas o pausadas')
         
@@ -148,6 +143,9 @@ class PomodoroSession(models.Model):
         
         self.status = 'cancelled'
         self.save()
+        
+        # Notify task about the cancellation
+        self.task.handle_session_cancellation(self)
 
     def complete(self):
         """Marcar la sesión como completada"""
