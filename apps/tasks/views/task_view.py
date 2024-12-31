@@ -26,46 +26,6 @@ from django.utils.html import strip_tags
 from django.conf import settings
 from threading import Thread
 
-@shared_task
-def send_task_reminder(task_id):
-    try:
-        task = Task.objects.get(id=task_id)
-        
-        # Solo enviar si la tarea no está completada
-        if task.status != 'completed':
-            print(f"Iniciando envío de recordatorio para tarea {task_id}")
-            context = {
-                'user': task.user,
-                'task': task
-            }
-            
-            html_content = render_to_string('email/task_reminder.html', context)
-            text_content = strip_tags(html_content)
-            
-            email = EmailMultiAlternatives(
-                f'Recordatorio: {task.title}',
-                text_content,
-                settings.DEFAULT_FROM_EMAIL,
-                [task.user.email]
-            )
-            
-            email.attach_alternative(html_content, "text/html")
-            
-            # Adjuntar logo si existe
-            logo_path = Path(settings.BASE_DIR) / 'static' / 'img' / 'mindhelper-logo.png'
-            if logo_path.exists():
-                with open(logo_path, 'rb') as logo_file:
-                    logo = MIMEImage(logo_file.read())
-                    logo.add_header('Content-ID', '<logo>')
-                    email.attach(logo)
-            
-            email.send()
-            
-            return f"Recordatorio enviado para la tarea: {task.title}"
-            
-    except Task.DoesNotExist:
-        return f"La tarea con ID {task_id} no existe"
-
 def list_tasks_json(request):
     """
     Vista para obtener todas las tareas del usuario en formato JSON con filtros.
