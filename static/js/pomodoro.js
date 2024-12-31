@@ -2,11 +2,11 @@
 const CONFIG = {
   CIRCUMFERENCE: 2 * Math.PI * 88,
   AUDIO_TRACKS: {
-    whitenoise: '/static/audio/lofi.mp3',
-    nature: '/static/audio/lofi.mp3',
+    Clair: '/static/audio/clair.mp3',
+    Classic: '/static/audio/overture.mp3',
     lofi: '/static/audio/lofi.mp3',
-    rain: '/static/audio/lofi.mp3',
-    ocean: '/static/audio/lofi.mp3'
+    Nocturnes: '/static/audio/nocturnes.mp3',
+    Gymnopedie: '/static/audio/gymnopedie.mp3'
   },
   API_ENDPOINTS: {
     pomodoro: '/pomodoro/api/'
@@ -28,7 +28,7 @@ class PomodoroAudioManager {
       const audio = new Audio(path);
       audio.loop = true;
       this.audioTracks[key] = audio;
-      
+
       // Agregar manejadores de error
       audio.onerror = () => {
         console.error(`Error loading audio track: ${key}`);
@@ -42,21 +42,21 @@ class PomodoroAudioManager {
   createAudioControls() {
     const controls = document.createElement('div');
     controls.className = 'fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4 space-y-4';
-    
+
     // Selector de pista
     const trackSelector = document.createElement('select');
     trackSelector.className = 'w-full p-2 rounded border border-gray-300';
-    
+
     // Agregar opciones de pistas
     const tracks = [
       { value: '', label: 'Sin sonido' },
       { value: 'lofi', label: 'Lo-Fi Music' },
-      { value: 'whitenoise', label: 'White Noise' },
-      { value: 'nature', label: 'Nature Sounds' },
-      { value: 'rain', label: 'Rain Sounds' },
-      { value: 'ocean', label: 'Ocean Waves' }
+      { value: 'Clair', label: 'Clair Lune' },
+      { value: 'Classic', label: 'Mozart Classic' },
+      { value: 'Nocturnes', label: 'Nocturnes Op 9' },
+      { value: 'Gymnopedie', label: 'Gymnopedie No. 1' }
     ];
-    
+
     tracks.forEach(track => {
       const option = document.createElement('option');
       option.value = track.value;
@@ -102,7 +102,7 @@ class PomodoroAudioManager {
         this.currentAudio = this.audioTracks[trackName];
         this.currentTrack = trackName;
         this.currentAudio.volume = this.volume;
-        
+
         // Intentar reproducir con manejo de errores
         try {
           await this.currentAudio.play();
@@ -137,9 +137,9 @@ class PomodoroAudioManager {
       <p class="font-bold">Activar sonido</p>
       <p>Haz clic en cualquier parte de la página para activar el sonido de fondo.</p>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Remover la notificación después de un click
     document.addEventListener('click', () => {
       notification.remove();
@@ -285,12 +285,12 @@ class PomodoroApp {
     this.updateMainActionButton('pause');
     // Reanudar audio si existe
     this.audioManager.resumeAudio();
-    
+
     this.timerId = setInterval(() => {
       this.timeLeft--;
       this.elements.timer.textContent = this.formatTime(this.timeLeft);
       this.updateProgress(this.timeLeft);
-      
+
       if (this.timeLeft % 5 === 0) {
         this.saveSessionToLocalStorage();
       }
@@ -317,7 +317,7 @@ class PomodoroApp {
     try {
       // Check for active session first
       const activeSession = await this.checkActiveSession();
-      
+
       if (activeSession) {
         const shouldCancel = await this.confirmCancelActiveSession(activeSession);
         if (shouldCancel) {
@@ -333,14 +333,14 @@ class PomodoroApp {
         task_id: taskId,
         session_type: 'pomodoro'
       });
-      
+
       this.activeSession = response;
       this.timeLeft = response.duration * 60;
       this.totalTime = this.timeLeft;
       this.startTimerCountdown();
       this.updateUIForActiveSession();
       this.saveSessionToLocalStorage();
-      
+
     } catch (error) {
       if (error.message) {
         this.showNotification('error', error.message);
@@ -362,7 +362,7 @@ class PomodoroApp {
     return new Promise((resolve) => {
       const taskName = session.task.title;
       const message = `Ya tienes una sesión activa para la tarea "${taskName}". ¿Deseas cancelarla y comenzar una nueva?`;
-      
+
       this.showConfirmDialog(
         'Sesión Activa',
         message,
@@ -389,10 +389,10 @@ class PomodoroApp {
       } else {
         this.startTimerCountdown();
       }
-      
+
       this.activeSession = response;
       this.saveSessionToLocalStorage();
-      
+
     } catch (error) {
       this.showNotification('error', error.message);
     }
@@ -404,13 +404,13 @@ class PomodoroApp {
         action: 'cancel',
         session_id: sessionId
       });
-      
+
       this.audioManager.pauseAudio();
       this.resetTimer();
       this.activeSession = null;
       this.updateUIForNoSession();
       localStorage.removeItem('pomodoroSession');
-      
+
     } catch (error) {
       this.showNotification('error', error.message);
     }
@@ -418,24 +418,24 @@ class PomodoroApp {
 
   async completeSession() {
     if (!this.activeSession) return;
-    
+
     try {
       const response = await this.makeRequest('POST', {
         action: 'complete',
         session_id: this.activeSession.session_id
       });
-      
+
       this.toggleAudio(null);
       this.showSessionSummary(response);
-      
+
       if (response.task.completed_pomodoros >= response.task.estimated_pomodoros) {
         this.showTaskCompletionMessage();
       }
-      
+
       this.activeSession = null;
       this.resetTimer();
       localStorage.removeItem('pomodoroSession');
-      
+
     } catch (error) {
       this.showNotification('error', error.message);
     }
@@ -457,9 +457,9 @@ class PomodoroApp {
 
   updateUIForActiveSession() {
     if (!this.activeSession) return;
-    
+
     this.elements.taskName.textContent = this.activeSession.task.title;
-    this.elements.sessionType.textContent = 
+    this.elements.sessionType.textContent =
       this.activeSession.session_type.replace('_', ' ').toUpperCase();
     this.updateMainActionButton(
       this.activeSession.status === 'in_progress' ? 'pause' : 'play'
@@ -483,16 +483,16 @@ class PomodoroApp {
       // Check server for active session first
       const response = await this.makeRequest('GET');
       const serverSession = response.active_session;
-      
+
       if (serverSession) {
         this.activeSession = serverSession;
-        
+
         // Calculate remaining time based on server session
         const startTime = new Date(serverSession.started_at);
         const currentTime = new Date();
         const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
         const pauseDuration = serverSession.total_pause_duration || 0;
-        
+
         // Adjust for pauses
         const adjustedElapsedSeconds = elapsedSeconds - pauseDuration;
         this.timeLeft = Math.max(0, (serverSession.duration * 60) - adjustedElapsedSeconds);
@@ -500,14 +500,14 @@ class PomodoroApp {
 
         // Update UI
         this.updateUIForActiveSession();
-        
+
         // If session is in progress, start countdown
         if (serverSession.status === 'in_progress') {
           this.startTimerCountdown();
         } else if (serverSession.status === 'paused') {
           this.updateMainActionButton('play');
         }
-        
+
         // Store session data in localStorage for redundancy
         this.saveSessionToLocalStorage();
       } else {
@@ -543,15 +543,15 @@ class PomodoroApp {
         const lastUpdate = new Date(sessionData.lastUpdate);
         const currentTime = new Date();
         const timeDiff = Math.floor((currentTime - lastUpdate) / 1000);
-        
+
         // Only recover if less than 5 minutes have passed
         if (timeDiff < 300) {
           this.activeSession = sessionData;
           this.timeLeft = Math.max(0, sessionData.timeLeft);
           this.totalTime = sessionData.totalTime;
-          
+
           this.updateUIForActiveSession();
-          
+
           if (sessionData.status === 'in_progress') {
             this.startTimerCountdown();
           } else if (sessionData.status === 'paused') {
@@ -573,7 +573,7 @@ class PomodoroApp {
       this.currentAudio.pause();
       this.currentAudio.currentTime = 0;
     }
-    
+
     if (track && this.audioTracks[track]) {
       this.currentAudio = this.audioTracks[track];
       this.currentAudio.loop = true;
@@ -591,18 +591,18 @@ class PomodoroApp {
         'X-CSRFToken': this.getCookie('csrftoken')
       }
     };
-    
+
     if (method !== 'GET' && data) {
       options.body = JSON.stringify(data);
     }
-    
+
     const response = await fetch(CONFIG.API_ENDPOINTS.pomodoro, options);
     const responseData = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(responseData.error || 'Server error');
     }
-    
+
     return responseData;
   }
 
@@ -627,9 +627,9 @@ class PomodoroApp {
       type === 'error' ? 'bg-red-500' : 'bg-green-500'
     } text-white z-50 transition-opacity duration-300`;
     notificationDiv.textContent = message;
-    
+
     document.body.appendChild(notificationDiv);
-    
+
     // Fade out effect
     setTimeout(() => {
       notificationDiv.style.opacity = '0';
