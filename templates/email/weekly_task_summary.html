@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen Semanal de Tareas</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 0; padding: 0; background-color: #f4f4f4;">
+        <tr>
+            <td style="padding: 20px 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px 40px; text-align: center; background-color: #5c6ac4; border-radius: 8px 8px 0 0;">
+                            <img src="cid:logo" alt="MindHelper Logo" style="max-width: 200px; height: auto;">
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h1 style="margin: 0 0 20px; color: #333333; font-size: 24px;">¡Hola {{ user.first_name|default:user.username }}!</h1>
+                            
+                            <p style="margin: 0 0 20px; color: #666666; font-size: 16px; line-height: 1.5;">
+                                Aquí está tu resumen semanal de tareas del {{ week_start|date:"d/m/Y" }} al {{ week_end|date:"d/m/Y" }}.
+                            </p>
+
+                            {% if completed_tasks %}
+                            <!-- Completed Tasks Section -->
+                            <h2 style="margin: 30px 0 15px; color: #28a745; font-size: 20px;">✅ Tareas Completadas</h2>
+                            {% for task in completed_tasks %}
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 0 0 15px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #28a745;">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <h3 style="margin: 0 0 10px; color: #333333; font-size: 18px;">{{ task.title }}</h3>
+                                        <div style="color: #888888; font-size: 14px;">
+                                            <span>📅 Completada: {{ task.completed_at|date:"d/m/Y H:i" }}</span>
+                                            <span style="margin-left: 15px;">⏱️ Pomodoros: {{ task.completed_pomodoros }}/{{ task.estimated_pomodoros }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endfor %}
+                            {% endif %}
+
+                            {% if pending_tasks %}
+                            <!-- Pending Tasks Section -->
+                            <h2 style="margin: 30px 0 15px; color: #dc3545; font-size: 20px;">⏳ Tareas Pendientes</h2>
+                            {% for task in pending_tasks %}
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 0 0 15px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid {% if task.priority == 3 %}#dc3545{% elif task.priority == 2 %}#ffc107{% else %}#28a745{% endif %};">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <h3 style="margin: 0 0 10px; color: #333333; font-size: 18px;">{{ task.title }}</h3>
+                                        <p style="margin: 0 0 10px; color: #666666;">{{ task.description|default:"Sin descripción"|truncatewords:30 }}</p>
+                                        <div style="color: #888888; font-size: 14px;">
+                                            <span>📅 Vence: {{ task.due_date|date:"d/m/Y" }}</span>
+                                            <span style="margin-left: 15px;">🎯 {{ task.get_priority_display }}</span>
+                                            <span style="margin-left: 15px;">📊 {{ task.get_status_display }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endfor %}
+                            {% endif %}
+
+                            <!-- Statistics Section -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 30px 0; background-color: #f8f9fa; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <h2 style="margin: 0 0 15px; color: #333333; font-size: 20px;">📊 Estadísticas de la Semana</h2>
+                                        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                                            <tr>
+                                                <td style="padding: 5px 0;">
+                                                    <span style="color: #28a745;">✅ Tareas completadas:</span>
+                                                    <span style="color: #333333; margin-left: 5px;">{{ completed_tasks|length }}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0;">
+                                                    <span style="color: #dc3545;">⏳ Tareas pendientes:</span>
+                                                    <span style="color: #333333; margin-left: 5px;">{{ pending_tasks|length }}</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action Button -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 30px 0;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'tasks:task-list' %}" style="display: inline-block; padding: 12px 24px; background-color: #5c6ac4; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;">Ver todas mis tareas</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 0; color: #666666; font-size: 16px; line-height: 1.5;">
+                                ¡Sigue así! La constancia es la clave del éxito.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 40px; text-align: center; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; color: #888888; font-size: 14px;">
+                                Este es un correo automático, por favor no responder.
+                                <br>
+                                © {% now "Y" %} MindHelper. Todos los derechos reservados.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

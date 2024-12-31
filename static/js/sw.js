@@ -1,70 +1,80 @@
-// Service Worker para la funcionalidad offline y PWA
-const CACHE_NAME = 'pomodoro-cache-v1';
-const urlsToCache = [
-    '/',
-    '/static/css/styles.css',
-    '/static/js/main.js',
-    '/static/sounds/start.mp3',
-    '/static/sounds/complete.mp3',
-    '/static/sounds/pause.mp3',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
-];
-
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-    );
-});
-
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
-            })
-    );
-});
-
-self.addEventListener('push', event => {
+// static/js/sw.js
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+  });
+  
+  self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
+  });
+  
+  self.addEventListener('push', (event) => {
+    const data = event.data.json();
     const options = {
-        body: event.data.text(),
-        icon: '/static/images/logo.png',
-        badge: '/static/images/badge.png',
-        vibrate: [100, 50, 100],
-        data: {
-            dateOfArrival: Date.now(),
-            primaryKey: 1
-        },
-        actions: [
-            {
-                action: 'start',
-                title: 'Iniciar Pomodoro',
-                icon: '/static/images/start.png'
-            },
-            {
-                action: 'cancel',
-                title: 'Cancelar',
-                icon: '/static/images/cancel.png'
-            }
-        ]
+      body: data.body,
+      icon: '/static/img/pomodoro-icon.png',
+      badge: '/static/img/badge-icon.png',
+      vibrate: [200, 100, 200],
+      tag: data.tag || 'pomodoro-notification',
+      renotify: true,
+      data: {
+        url: data.url || '/',
+        sessionId: data.sessionId
+      },
+      actions: []
     };
-
-    event.waitUntil(
-        self.registration.showNotification('MindHelper Pomodoro', options)
-    );
-});
-
-self.addEventListener('notificationclick', event => {
-    event.notification.close();
-
-    if (event.action === 'start') {
-        // Abrir la aplicación y comenzar un nuevo pomodoro
-        clients.openWindow('/pomodoro?action=start');
+  
+    if (data.type === 'session_complete') {
+      options.actions = [
+        {
+          action: 'start_break',
+          title: 'Iniciar descanso'
+        },
+        {
+          action: 'skip_break',
+          title: 'Saltar descanso'
+        }
+      ];
+    } else if (data.type === 'break_complete') {
+      options.actions = [
+        {
+          action: 'start_pomodoro',
+          title: 'Iniciar pomodoro'
+        }
+      ];
     }
-});
+  
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  });
+  
+  self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+  
+    if (event.action === 'start_break' || event.action === 'start_pomodoro') {
+      const sessionData = event.notification.data;
+      event.waitUntil(
+        fetch('/pomodoro/api/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'start',
+            session_type: event.action === 'start_break' ? 'short_break' : 'pomodoro',
+            task_id: sessionData.taskId
+          })
+        })
+      );
+    }
+  
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          if (clientList.length > 0) {
+            return clientList[0].focus();
+          }
+          return clients.openWindow(event.notification.data.url);
+        })
+    );
+  });

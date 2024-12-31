@@ -147,8 +147,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-MEDIA_ROOT = BASE_DIR / 'mediafiles'  # Esto ya está configurado en tu archivo
+  # Esto ya está configurado en tu archivo
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -165,7 +166,7 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/accounts/google/login/' #CAMBIÉ
+LOGIN_URL = '/security/login/' #CAMBIÉ
 
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
@@ -201,7 +202,6 @@ ACCOUNT_LOGIN_ON_GET = True
 #EN GOOGLE_REDIRECT.PY  AGREGARLEE:
 def redirect_to_google_login(request):
     return redirect('/accounts/google/login/?process=login')
-
 
 #EMAIL CONFIG
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

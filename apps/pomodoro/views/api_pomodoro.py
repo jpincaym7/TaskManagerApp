@@ -37,6 +37,7 @@ class PomodoroAPIView(LoginRequiredMixin, View):
         """Manejar el inicio de una nueva sesión"""
         task_id = data.get('task_id')
         session_type = data.get('session_type', 'pomodoro')
+        enable_audio = data.get('enable_audio', False)
         
         # Verificar si hay una sesión activa
         active_session = self.get_active_session(request.user)
@@ -47,6 +48,14 @@ class PomodoroAPIView(LoginRequiredMixin, View):
             }, status=400)
         
         task = get_object_or_404(Task, id=task_id, user=request.user)
+        
+        # Verificar si la tarea ya completó sus pomodoros estimados
+        if session_type == 'pomodoro' and task.completed_pomodoros >= task.estimated_pomodoros:
+            return JsonResponse({
+                'error': 'Esta tarea ya ha completado todos sus pomodoros estimados',
+                'completed': True
+            }, status=400)
+        
         settings = request.user.pomodorosettings
         duration = self.calculate_session_duration(session_type, settings)
         
@@ -55,19 +64,14 @@ class PomodoroAPIView(LoginRequiredMixin, View):
             task=task,
             session_type=session_type,
             duration=duration,
-            status='in_progress'
+            status='in_progress',
+            background_audio_enabled=enable_audio
         )
         
         # Actualizar estado de la tarea
         if session_type == 'pomodoro' and task.status == 'pending':
             task.status = 'in_progress'
             task.save(update_fields=['status'])
-        
-        TaskEvent.objects.create(
-            task=task,
-            event_type='session_started',
-            description=f'Iniciada sesión de {session_type}'
-        )
         
         return JsonResponse(self.get_session_data(session))
 
@@ -118,6 +122,14 @@ class PomodoroAPIView(LoginRequiredMixin, View):
             
         return data
 
+    def get(self, request, *args, **kwargs):
+        active_session = self.get_active_session(request.user)
+        if active_session:
+            return JsonResponse({
+                'active_session': self.get_session_data(active_session)
+            })
+        return JsonResponse({'active_session': None})
+    
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
@@ -149,6 +161,7 @@ class PomodoroAPIView(LoginRequiredMixin, View):
                 return JsonResponse(response_data)
                 
             elif action == 'cancel':
+                print("cancelamiento")
                 session.cancel()
                 return JsonResponse(self.get_session_data(session))
                 

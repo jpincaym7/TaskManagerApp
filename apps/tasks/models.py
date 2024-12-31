@@ -40,6 +40,7 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    reminded_at = models.DateTimeField(null=True, blank=True)
     
     def save(self, *args, **kwargs):
         # Verificar si es una nueva tarea o si se modificó reminder_time
@@ -120,6 +121,12 @@ class Task(models.Model):
             event_type='session_interrupted',
             description=f'Sesión de pomodoro interrumpida'
         )
+    
+    class Meta:
+        indexes = [
+            # ... (índices existentes) ...
+            models.Index(fields=['status', 'due_date', 'reminded_at']),
+        ]
 
 class TaskEvent(models.Model):
     """Model to track important events in a task's lifecycle"""

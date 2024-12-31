@@ -1,5 +1,6 @@
 from django.urls import path
 from apps.tasks.views.calendar import CalendarView
+from apps.tasks.views.categories import CategoryCreateView, CategoryDeleteView, CategoryListView, CategoryUpdateView
 from apps.tasks.views.task_view import (
     TaskDetailView,
     TaskListView,
@@ -23,4 +24,27 @@ urlpatterns = [
     path('<int:pk>/pomodoro/', TaskPomodoroUpdateView.as_view(), name='task-pomodoro-update'),# Actualizar pomodoros
     path('<int:pk>/detail/', TaskDetailView.as_view(), name='task-detail'),
     path('calendar/', CalendarView.as_view(), name='task-calendar'),
+    
+    
+    # Rutas para categorías
+    path(
+        'categories/',
+        CategoryListView.as_view(),
+        name='category_list'
+    ),
+    path(
+        'categories/create/',
+        CategoryCreateView.as_view(),
+        name='category_create'
+    ),
+    path(
+        'categories/<int:pk>/update/',
+        CategoryUpdateView.as_view(),
+        name='category_update'
+    ),
+    path(
+        'categories/<int:pk>/delete/',
+        CategoryDeleteView.as_view(),
+        name='category_delete'
+    ),
 ]

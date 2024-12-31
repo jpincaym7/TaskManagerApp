@@ -1,19 +1,41 @@
 import os
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
-# Set the default Django settings module
+# Establecer la configuración de Django por defecto para el programa 'celery'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'task_manager.settings')
 
-# Create the Celery app
+# Crear la aplicación Celery
 app = Celery('task_manager')
 
-# Load configuration from Django settings using the "CELERY" namespace
+# Configurar usando el objeto settings de Django
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Auto-discover tasks from all registered Django apps
-app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+# Cargar tareas de todos los módulos registrados en INSTALLED_APPS
+app.autodiscover_tasks()
 
-@app.task(bind=True, ignore_result=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
+# Configuración del schedule de tareas periódicas
+app.conf.beat_schedule = {
+    'daily-task-summary': {
+        'task': 'apps.tasks.notifications.send_daily_task_summary',
+        'schedule': crontab(hour=7, minute=0),  # 7:00 AM todos los días
+    },
+    'upcoming-task-reminders': {
+        'task': 'apps.tasks.notifications.send_upcoming_task_reminders',
+        'schedule': crontab(minute=0, hour='*/4'),  # Cada 4 horas
+    },
+    'weekly-task-summary': {
+        'task': 'apps.tasks.notifications.send_weekly_task_summary',
+        'schedule': crontab(hour=8, minute=0, day_of_week='monday'),  # Lunes 8:00 AM
+    },
+}
+
+# Configuración opcional adicional de Celery
+app.conf.update(
+    task_serializer='json',
+    accept_content=['json'],
+    result_serializer='json',
+    timezone='America/Guayaquil',
+    enable_utc=True,
+)

@@ -8,6 +8,18 @@
 <div class="flex flex-col min-h-screen bg-gray-50">
   <!-- Timer Section -->
   <div class="relative flex-none bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-4">
+    <!-- Help Button -->
+    <div class="fixed right-4 top-1/2 transform -translate-y-1/2 z-20">
+      <button 
+        id="helpButton"
+        class="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg hover:bg-white/30 active:scale-95 transition-all duration-200 backdrop-blur-sm"
+        aria-label="Instrucciones Pomodoro"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+    </div>
     <!-- Task Quick Select -->
     <div class="absolute top-4 right-4 z-10">
       <button id="taskToggle" class="flex items-center space-x-2 bg-white/20 rounded-full px-3 py-1.5 text-sm font-medium backdrop-blur-sm">
@@ -59,6 +71,16 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
+
+      {% if active_session %}
+        <button id="cancelSessionBtn" 
+                class="flex items-center justify-center w-14 h-14 rounded-full bg-white/20 text-white shadow-lg active:scale-95 transition-transform backdrop-blur-sm"
+                title="Cancelar sesión">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      {% endif %}
     </div>
   </div>
 
@@ -134,214 +156,117 @@
       </div>
     </div>
   </div>
+
+  <!-- Help Modal -->
+  <!-- Help Modal -->
+<div id="helpModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50 transition-opacity duration-300" id="helpModalBackdrop"></div>
+  <div class="absolute inset-x-0 bottom-0 h-[60vh] transform translate-y-full transition-transform duration-300 ease-out bg-white shadow-xl rounded-t-2xl" id="helpModalContent">
+    <!-- Handle for drag indicator -->
+    <div class="w-full flex justify-center py-2">
+      <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+    </div>
+    
+    <!-- Modal Header -->
+    <div class="px-4 pb-2">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-900 text-lg">Instrucciones Pomodoro</h3>
+        <button id="closeHelpModal" class="p-2 text-gray-400 hover:text-gray-500 active:scale-95 transition-transform">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Modal Content -->
+    <div class="overflow-y-auto px-4 pb-6 space-y-6" style="max-height: calc(60vh - 4rem)">
+      <div class="space-y-4">
+        <div class="bg-purple-50 p-4 rounded-lg">
+          <h4 class="font-medium text-purple-900 mb-2">¿Qué es la Técnica Pomodoro?</h4>
+          <p class="text-purple-700">La técnica Pomodoro es un método de gestión del tiempo que usa intervalos de 25 minutos de trabajo enfocado, seguidos por descansos cortos.</p>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h4 class="font-medium text-blue-900 mb-2">Cómo Usar la App</h4>
+          <div class="space-y-2 text-blue-700">
+            <p>1. Selecciona una tarea haciendo clic en el botón superior derecho.</p>
+            <p>2. Inicia el temporizador con el botón de play.</p>
+            <p>3. Trabaja enfocado durante los 25 minutos.</p>
+            <p>4. Cuando suene la alarma, toma un descanso de 5 minutos.</p>
+            <p>5. Después de 4 pomodoros, toma un descanso largo de 15 minutos.</p>
+          </div>
+        </div>
+
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h4 class="font-medium text-green-900 mb-2">Controles</h4>
+          <div class="space-y-2 text-green-700">
+            <p>• Play/Pause: Inicia o pausa la sesión actual</p>
+            <p>• X: Cancela la sesión actual</p>
+            <p>• Selector de tareas: Cambia la tarea actual</p>
+          </div>
+        </div>
+
+        <div class="bg-orange-50 p-4 rounded-lg">
+          <h4 class="font-medium text-orange-900 mb-2">Consejos</h4>
+          <div class="space-y-2 text-orange-700">
+            <p>• Evita interrupciones durante el pomodoro</p>
+            <p>• Usa los descansos para estirar y relajarte</p>
+            <p>• Mantén un registro de tus pomodoros completados</p>
+            <p>• Ajusta la duración en configuración si es necesario</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_javascript %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Core Elements
-  const timer = document.getElementById('timer');
-  const sessionType = document.getElementById('sessionType');
-  const mainActionBtn = document.getElementById('mainActionBtn');
-  const timerProgress = document.getElementById('timerProgress');
-  const taskModal = document.getElementById('taskModal');
-  const taskToggle = document.getElementById('taskToggle');
-  const closeTaskModal = document.getElementById('closeTaskModal');
+  window.activeSession = {% if active_session %}{{ active_session_json|safe }}{% else %}null{% endif %};
+</script>
+<script src="{% static 'js/pomodoro.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const helpButton = document.getElementById('helpButton');
+    const helpModal = document.getElementById('helpModal');
+    const helpModalContent = document.getElementById('helpModalContent');
+    const helpModalBackdrop = document.getElementById('helpModalBackdrop');
+    const closeHelpModal = document.getElementById('closeHelpModal');
   
-  // State
-  let timeLeft = {{ settings.pomodoro_duration }} * 60;
-  let totalTime = timeLeft;
-  let timerId = null;
-  let activeSession = null;
-
-  // Constants
-  const CIRCUMFERENCE = 2 * Math.PI * 88;
-  timerProgress.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
-
-  // Timer Functions
-  function updateProgress(timeLeft) {
-    const progress = timeLeft / totalTime;
-    const offset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
-    timerProgress.style.strokeDashoffset = offset;
-  }
-
-  function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  }
-
-  // Session Management
-  async function startSession(taskId) {
-    try {
-      const response = await fetch('{% url "pomodoro:pomodoro_api" %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-          action: 'start',
-          task_id: taskId,
-          session_type: 'pomodoro'
-        })
-      });
-      
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      
-      activeSession = data;
-      timeLeft = data.duration * 60;
-      totalTime = timeLeft;
-      startTimerCountdown();
-      updateUIForActiveSession();
-      
-    } catch (error) {
-      showNotification('error', error.message);
+    function openModal() {
+      helpModal.classList.remove('hidden');
+      // Force a reflow to ensure the transition works
+      helpModal.offsetHeight;
+      helpModalContent.classList.remove('translate-y-full');
+      helpModalBackdrop.classList.add('opacity-100');
+      helpModalBackdrop.classList.remove('opacity-0');
     }
-  }
-
-  function startTimerCountdown() {
-    updateMainActionButton('pause');
-    timerId = setInterval(() => {
-      timeLeft--;
-      timer.textContent = formatTime(timeLeft);
-      updateProgress(timeLeft);
-
-      if (timeLeft <= 0) {
-        clearInterval(timerId);
-        completeSession();
+  
+    function closeModal() {
+      helpModalContent.classList.add('translate-y-full');
+      helpModalBackdrop.classList.remove('opacity-100');
+      helpModalBackdrop.classList.add('opacity-0');
+      // Wait for the transition to finish before hiding the modal
+      setTimeout(() => {
+        helpModal.classList.add('hidden');
+      }, 300);
+    }
+  
+    helpButton.addEventListener('click', openModal);
+    closeHelpModal.addEventListener('click', closeModal);
+  
+    // Close modal when clicking outside
+    helpModalBackdrop.addEventListener('click', closeModal);
+  
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !helpModal.classList.contains('hidden')) {
+        closeModal();
       }
-    }, 1000);
-  }
-
-  async function toggleTimer() {
-    if (!activeSession) return;
-
-    try {
-      const action = activeSession.status === 'in_progress' ? 'pause' : 'resume';
-      const response = await fetch('{% url "pomodoro:pomodoro_api" %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-          action: action,
-          session_id: activeSession.session_id
-        })
-      });
-
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-
-      if (action === 'pause') {
-        clearInterval(timerId);
-        updateMainActionButton('play');
-      } else {
-        startTimerCountdown();
-      }
-      
-      activeSession = data;
-      
-    } catch (error) {
-      showNotification('error', error.message);
-    }
-  }
-
-  // UI Updates
-  function updateMainActionButton(state) {
-    const icons = {
-      play: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>`,
-      pause: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>`
-    };
-    mainActionBtn.innerHTML = icons[state];
-  }
-
-  function updateUIForActiveSession() {
-    if (!activeSession) return;
-    
-    const taskName = document.querySelector('.task-name');
-    taskName.textContent = activeSession.task.title;
-    sessionType.textContent = activeSession.session_type.replace('_', ' ').toUpperCase();
-    updateMainActionButton(activeSession.status === 'in_progress' ? 'pause' : 'play');
-  }
-
-  // Event Listeners
-  mainActionBtn.addEventListener('click', () => {
-    if (activeSession) {
-      toggleTimer();
-    } else {
-      taskModal.classList.remove('hidden');
-    }
-  });
-
-  taskToggle.addEventListener('click', () => {
-    if (!activeSession) {
-      taskModal.classList.remove('hidden');
-    }
-  });
-
-  closeTaskModal.addEventListener('click', () => {
-    taskModal.classList.add('hidden');
-  });
-
-  document.querySelectorAll('.task-option').forEach(button => {
-    button.addEventListener('click', () => {
-      const taskId = button.dataset.taskId;
-      startSession(taskId);
-      taskModal.classList.add('hidden');
     });
   });
-
-  // Initialize
-  {% if active_session %}
-    activeSession = {
-      session_id: {{ active_session.id }},
-      duration: {{ active_session.duration }},
-      started_at: new Date('{{ active_session.started_at.isoformat }}'),
-      status: '{{ active_session.status }}',
-      task: {
-        id: {{ active_session.task.id }},
-        title: '{{ active_session.task.title }}'
-      }
-    };
-
-    if (activeSession.status === 'in_progress') {
-      const elapsedSeconds = Math.floor((new Date() - new Date(activeSession.started_at)) / 1000);
-      timeLeft = Math.max(0, (activeSession.duration * 60) - elapsedSeconds);
-      totalTime = activeSession.duration * 60;
-      startTimerCountdown();
-    }
-    
-    updateUIForActiveSession();
-  {% endif %}
-
-  // Utilities
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-  function showNotification(type, message) {
-    // Implementation of notification system...
-  }
-});
 </script>
 {% endblock %}

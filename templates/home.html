@@ -53,7 +53,7 @@
     <p>Únete a nuestra comunidad y mejora tu organización diaria</p>
     <div class="cta-buttons">
         {% if user.is_authenticated %}
-        <a href="" class="btn btn-primary">Ir a mis tareas</a>
+        <a href="{% url 'tasks:task-list' %}" class="btn btn-primary">Ir a mis tareas</a>
         {% else %}
         <a href="{% url 'security:register' %}" class="btn btn-primary">Crear cuenta</a>
         <a href="{% url 'security:login' %}" class="btn btn-secondary">Iniciar sesión</a>

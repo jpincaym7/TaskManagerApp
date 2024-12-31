@@ -1,189 +1,354 @@
-{% extends 'includes/base.html' %}
+{% extends "includes/base.html" %}
 {% load static %}
+
+{% block title %}Mi Perfil - MindHelper{% endblock %}
 
 {% block extra_css %}
 <style>
-.profile-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin: 20px 0;
-}
+    .profile-section {
+        background: var(--color-surface);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+    }
 
-.stat-card {
-    background: var(--color-surface);
-    padding: 16px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    text-align: center;
-}
+    .profile-header {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+    }
 
-.stat-value {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--color-primary);
-}
+    .stat-card {
+        background: var(--color-surface);
+        padding: 1rem;
+        border-radius: var(--radius-sm);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
 
-.stat-label {
-    font-size: 12px;
-    color: var(--color-text);
-    opacity: 0.8;
-}
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--color-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.profile-section {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-md);
-}
+    .form-group {
+        margin-bottom: 1rem;
+    }
 
-.section-title {
-    font-size: 18px;
-    font-weight: 500;
-    margin-bottom: 16px;
-    color: var(--color-secondary);
-}
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--color-text);
+        font-weight: 500;
+    }
 
-.profile-info-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--color-background);
-}
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
 
-.profile-info-item:last-child {
-    border-bottom: none;
-}
+    .form-control:focus {
+        border-color: var(--color-primary);
+        outline: none;
+    }
 
-.info-label {
-    font-size: 14px;
-    color: var(--color-text);
-    opacity: 0.8;
-    width: 40%;
-}
+    .tab-container {
+        margin-bottom: 1rem;
+    }
 
-.info-value {
-    font-size: 14px;
-    color: var(--color-text);
-    font-weight: 500;
-}
+    .tab-buttons {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
 
-.edit-profile-btn {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gradient-primary);
-    color: white;
-    padding: 14px 32px;
-    border-radius: var(--radius-lg);
-    border: none;
-    font-weight: 500;
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 90;
-}
+    .tab-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: var(--color-surface);
+        color: var(--color-text);
+        border-radius: var(--radius-sm);
+        white-space: nowrap;
+        transition: all 0.3s;
+    }
+
+    .tab-button.active {
+        background: var(--color-primary);
+        color: white;
+    }
+
+    .action-button {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        background: var(--color-primary);
+        color: white;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
+        margin-top: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .action-button:active {
+        transform: scale(0.98);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-header-section">
-    <div class="profile-avatar large">
-        {% if user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="Profile Picture">
-        {% else %}
-            <i class="fas fa-user-circle"></i>
-        {% endif %}
+{% if request.resolver_match.url_name == 'profile' %}
+    <!-- Vista de Perfil -->
+    <div class="profile-header">
+        <div class="profile-avatar mb-4">
+            {% if user.get_profile_photo %}
+                <img src="{{ user.get_profile_photo }}" alt="{{ user.get_full_name }}">
+            {% else %}
+                <i class="fas fa-user-circle fa-3x"></i>
+            {% endif %}
+        </div>
+        <h2 class="text-xl font-semibold">{{ user.get_full_name|default:user.username }}</h2>
+        <p class="text-sm opacity-90">{{ user.email }}</p>
     </div>
-    <h1 class="profile-name large">{{ user.get_full_name|default:user.username }}</h1>
-</div>
 
-<div class="profile-stats">
-    <div class="stat-card">
-        <div class="stat-value">{{ task_summary.pending_tasks }}</div>
-        <div class="stat-label">Pendientes</div>
+    <!-- Resumen de Tareas -->
+    <div class="profile-section">
+        <h3 class="text-lg font-semibold mb-3">Resumen de Hoy</h3>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div>
+                <div class="text-sm opacity-70">Tareas Pendientes</div>
+                <div class="font-semibold">{{ task_summary.pending_tasks }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+                <div class="text-sm opacity-70">Completadas</div>
+                <div class="font-semibold">{{ task_summary.completed_tasks }}</div>
+            </div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ task_summary.completed_tasks }}</div>
-        <div class="stat-label">Completadas</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ task_summary.overdue_tasks }}</div>
-        <div class="stat-label">Atrasadas</div>
-    </div>
-</div>
 
-<div class="profile-section">
-    <h2 class="section-title">Información Personal</h2>
-    <div class="profile-info-item">
-        <span class="info-label">Email</span>
-        <span class="info-value">{{ user.email }}</span>
+    <!-- Configuración Pomodoro -->
+    <div class="profile-section">
+        <h3 class="text-lg font-semibold mb-3">Configuración Pomodoro</h3>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="text-center p-3 bg-gray-50 rounded">
+                <div class="text-sm opacity-70">Trabajo</div>
+                <div class="font-semibold">{{ pomodoro_stats.work_duration }}min</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded">
+                <div class="text-sm opacity-70">Descanso</div>
+                <div class="font-semibold">{{ pomodoro_stats.break_duration }}min</div>
+            </div>
+        </div>
     </div>
-    <div class="profile-info-item">
-        <span class="info-label">Notificaciones</span>
-        <span class="info-value">{{ user.get_notification_frequency_display }}</span>
-    </div>
-</div>
 
-<div class="profile-section">
-    <h2 class="section-title">Configuración de Accesibilidad</h2>
-    <div class="profile-info-item">
-        <span class="info-label">Tamaño de texto</span>
-        <span class="info-value">{{ accessibility_settings.text_size }}</span>
-    </div>
-    <div class="profile-info-item">
-        <span class="info-label">Alto contraste</span>
-        <span class="info-value">{{ accessibility_settings.high_contrast|yesno:"Activado,Desactivado" }}</span>
-    </div>
-</div>
+    <a href="{% url 'security:profile-update' %}" class="action-button">
+        Editar Perfil
+    </a>
 
-<div class="profile-section">
-    <h2 class="section-title">Contacto de Emergencia</h2>
-    <div class="profile-info-item">
-        <span class="info-label">Nombre</span>
-        <span class="info-value">{{ user.emergency_contact_name|default:"No configurado" }}</span>
-    </div>
-    <div class="profile-info-item">
-        <span class="info-label">Teléfono</span>
-        <span class="info-value">{{ user.emergency_contact_phone|default:"No configurado" }}</span>
-    </div>
-</div>
+{% else %}
+    <!-- Formulario de Actualización -->
+    <form method="post" class="space-y-4" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button type="button" class="tab-button active" data-tab="personal">
+                    <i class="fas fa-user"></i> Personal
+                </button>
+                <button type="button" class="tab-button" data-tab="preferences">
+                    <i class="fas fa-cog"></i> Preferencias
+                </button>
+                <button type="button" class="tab-button" data-tab="accessibility">
+                    <i class="fas fa-universal-access"></i> Accesibilidad
+                </button>
+            </div>
 
-<a href="{% url 'security:profile-update' %}" class="edit-profile-btn">
-    <i class="fas fa-edit"></i>
-    <span>Editar Perfil</span>
-</a>
+            <!-- Datos Personales -->
+            <div class="tab-content" id="personal">
+                <div class="form-group">
+                    <label for="username">Nombre de Usuario</label>
+                    <input type="text" id="username" name="username" 
+                           class="form-control" value="{{ user.username }}">
+                </div>
+                <div class="form-group">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" name="email" 
+                           class="form-control" value="{{ user.email }}">
+                </div>
+                <div class="form-group">
+                    <label for="emergency_contact_name">Contacto de Emergencia</label>
+                    <input type="text" id="emergency_contact_name" 
+                           name="emergency_contact_name" class="form-control"
+                           value="{{ user.emergency_contact_name }}">
+                </div>
+            </div>
+
+            <!-- Preferencias -->
+            <div class="tab-content hidden" id="preferences">
+                <div class="form-group">
+                    <label for="pomodoro_work_duration">Duración de Trabajo (min)</label>
+                    <input type="number" id="pomodoro_work_duration" 
+                           name="pomodoro_work_duration" class="form-control"
+                           value="{{ user.pomodoro_work_duration }}" min="15" max="45">
+                </div>
+                <div class="form-group">
+                    <label for="pomodoro_break_duration">Duración de Descanso (min)</label>
+                    <input type="number" id="pomodoro_break_duration" 
+                           name="pomodoro_break_duration" class="form-control"
+                           value="{{ user.pomodoro_break_duration }}" min="3" max="15">
+                </div>
+                <div class="form-group">
+                    <label for="daily_task_limit">Límite de Tareas Diarias</label>
+                    <input type="number" id="daily_task_limit" 
+                           name="daily_task_limit" class="form-control"
+                           value="{{ user.daily_task_limit }}" min="1" max="10">
+                </div>
+            </div>
+
+            <!-- Accesibilidad -->
+            <div class="tab-content hidden" id="accessibility">
+                <div class="form-group">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="use_high_contrast" 
+                               {% if user.use_high_contrast %}checked{% endif %}>
+                        Alto Contraste
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="text_size">Tamaño del Texto</label>
+                    <select name="text_size" id="text_size" class="form-control">
+                        {% for value, label in text_size_choices %}
+                            <option value="{{ value }}" 
+                                    {% if user.text_size == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="enable_text_to_speech"
+                               {% if user.enable_text_to_speech %}checked{% endif %}>
+                        Texto a Voz
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="action-button">
+            Guardar Cambios
+        </button>
+    </form>
+{% endif %}
 {% endblock %}
 
 {% block extra_javascript %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar gestos táctiles
-    const profileSections = document.querySelectorAll('.profile-section');
-    profileSections.forEach(section => {
-        const hammer = new Hammer(section);
-        hammer.on('tap', () => {
-            section.style.transform = 'scale(0.98)';
-            setTimeout(() => {
-                section.style.transform = 'scale(1)';
-            }, 150);
+    // Manejo de tabs
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tab = button.dataset.tab;
+            
+            // Actualizar botones
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Actualizar contenidos
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+                if (content.id === tab) {
+                    content.classList.remove('hidden');
+                }
+            });
         });
     });
 
-    // Animación de entrada
-    const elements = document.querySelectorAll('.profile-section, .stat-card');
-    elements.forEach((el, index) => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            el.style.transition = 'all 0.3s ease-out';
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
+    // Actualización en tiempo real
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('change', function(e) {
+            const formData = new FormData(form);
+            
+            fetch('{% url "security:ajax-update" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Mostrar notificación de éxito
+                    showNotification('Cambios guardados', 'success');
+                }
+            })
+            .catch(error => {
+                showNotification('Error al guardar los cambios', 'error');
+            });
+        });
+    }
 });
+
+function showNotification(message, type) {
+    // Crear notificación
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} notification-icon"></i>
+            <span class="notification-message">${message}</span>
+        </div>
+        <button class="notification-close">&times;</button>
+    `;
+    
+    // Añadir al contenedor
+    const container = document.querySelector('.notification-container') 
+        || createNotificationContainer();
+    container.appendChild(notification);
+    
+    // Eliminar después de 3 segundos
+    setTimeout(() => {
+        notification.classList.add('hiding');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function createNotificationContainer() {
+    const container = document.createElement('div');
+    container.className = 'notification-container';
+    document.body.appendChild(container);
+    return container;
+}
 </script>
 {% endblock %}

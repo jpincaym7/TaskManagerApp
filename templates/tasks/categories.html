@@ -1,0 +1,115 @@
+{% extends 'includes/base.html' %}
+{% load static %}
+
+{% block title %}Categorías - MindHelper{% endblock %}
+
+{% block extra_css %}
+<style>
+    .color-preview {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    .category-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .category-card:active {
+        transform: scale(0.98);
+    }
+
+    .modal-overlay {
+        backdrop-filter: blur(4px);
+    }
+
+    /* Animación para las tarjetas */
+    .highlight {
+        animation: highlightCard 1s ease;
+    }
+
+    @keyframes highlightCard {
+        0%, 100% { background: var(--color-surface); }
+        50% { background: var(--color-background); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Notification Container -->
+<div class="notification-container"></div>
+
+<div class="p-4">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">Categorías</h1>
+        <button id="addCategoryBtn" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:bg-gradient-to-l text-white px-4 py-2 rounded-lg shadow-md transition-all duration-200 flex items-center gap-2">
+            <i class="fas fa-plus"></i>
+            <span>Añadir</span>
+        </button>
+    </div>
+
+    <!-- Categories Grid -->
+    <div id="categoriesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for category in categories %}
+            {% include 'includes/category_card.html' with category=category %}
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    {% if not categories %}
+    <div class="text-center py-12">
+        <div class="mb-4">
+            <i class="fas fa-tags text-6xl text-gray-300"></i>
+        </div>
+        <h3 class="text-xl font-medium text-gray-600 mb-2">No hay categorías</h3>
+        <p class="text-gray-500">Crea tu primera categoría para organizar tus tareas</p>
+    </div>
+    {% endif %}
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="modal-container fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto">
+                <div class="modal-content p-6">
+                    <!-- Modal content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-auto relative transform transition-all">
+                    <div class="p-6">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">¿Eliminar categoría?</h3>
+                            <p class="text-gray-600">¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer.</p>
+                        </div>
+                        <div class="flex gap-3 mt-6">
+                            <button class="cancel-delete flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                Cancelar
+                            </button>
+                            <button class="confirm-delete flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_javascript %}
+<script src="{% static 'js/categories.js' %}"></script>
+{% endblock %}

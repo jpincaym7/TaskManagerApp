@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
-from apps.tasks.models import Task
+from apps.tasks.models import Task, TaskEvent
 
 class PomodoroSettings(models.Model):
     """Configuración personalizada de Pomodoro para cada usuario"""
@@ -77,6 +77,9 @@ class PomodoroSession(models.Model):
     interruption_count = models.IntegerField(default=0)
     notes = models.TextField(blank=True)
 
+    # Nuevo campo para tracking de audio
+    background_audio_enabled = models.BooleanField(default=False)
+    
     class Meta:
         ordering = ['-started_at']
         indexes = [
@@ -137,27 +140,62 @@ class PomodoroSession(models.Model):
             raise ValidationError('Solo se pueden cancelar sesiones activas o pausadas')
         
         if self.status == 'paused':
-            # Calcular la duración de la última pausa
             pause_duration = int((timezone.now() - self.last_pause_start).total_seconds())
             self.total_pause_duration += pause_duration
+            
+        # Verificar si hay otras sesiones activas para la tarea
+        has_other_active_sessions = PomodoroSession.objects.filter(
+            task=self.task,
+            status__in=['in_progress', 'paused']
+        ).exclude(id=self.id).exists()
+        
+        # Solo cambiar estado de la tarea si no hay otras sesiones activas
+        if not has_other_active_sessions:
+            completed_pomodoros = PomodoroSession.objects.filter(
+                task=self.task,
+                status='completed',
+                session_type='pomodoro'
+            ).count()
+            
+            # Si no hemos alcanzado los pomodoros estimados, volver a pending
+            if completed_pomodoros < self.task.estimated_pomodoros:
+                self.task.status = 'pending'
+                self.task.save(update_fields=['status'])
         
         self.status = 'cancelled'
+        self.ended_at = timezone.now()
         self.save()
         
-        # Notify task about the cancellation
-        self.task.handle_session_cancellation(self)
-
+        # Registrar el evento
+        TaskEvent.objects.create(
+            task=self.task,
+            event_type='session_cancelled',
+            description=f'Sesión cancelada después de {self.actual_duration or 0} minutos'
+        )
+    
     def complete(self):
-        """Marcar la sesión como completada"""
+        """Completar la sesión y actualizar el estado de la tarea"""
         if self.status not in ['in_progress', 'paused']:
             raise ValidationError('Solo se pueden completar sesiones activas o pausadas')
         
         if self.status == 'paused':
-            # Calcular la duración de la última pausa
             pause_duration = int((timezone.now() - self.last_pause_start).total_seconds())
             self.total_pause_duration += pause_duration
         
         self.status = 'completed'
+        self.ended_at = timezone.now()
+        
+        # Actualizar el contador de pomodoros completados
+        if self.session_type == 'pomodoro':
+            self.task.completed_pomodoros += 1
+            
+            # Verificar si hemos alcanzado el estimado
+            if self.task.completed_pomodoros >= self.task.estimated_pomodoros:
+                self.task.status = 'completed'
+                self.task.completed_at = timezone.now()
+            
+            self.task.save(update_fields=['completed_pomodoros', 'status', 'completed_at'])
+        
         self.save()
 
     def calculate_next_session_type(self):

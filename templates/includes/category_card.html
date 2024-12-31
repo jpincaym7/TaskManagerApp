@@ -1,0 +1,20 @@
+<!-- tasks/includes/category_card.html -->
+<div class="category-card bg-white rounded-lg shadow-md p-4 relative" data-category-id="{{ category.id }}">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center">
+            <span class="color-preview" style="background-color: {{ category.color }}"></span>
+            <h3 class="category-name font-medium text-gray-800">{{ category.name }}</h3>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="edit-category-btn text-gray-500 hover:text-primary transition-colors p-2">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-category-btn text-gray-500 hover:text-accent transition-colors p-2">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+    {% if category.description %}
+    <p class="text-gray-600 text-sm">{{ category.description }}</p>
+    {% endif %}
+</div>
